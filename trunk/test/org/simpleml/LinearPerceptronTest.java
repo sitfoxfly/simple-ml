@@ -7,11 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: coder
- * Date: 6/23/12
- * Time: 7:05 PM
- * To change this template use File | Settings | File Templates.
+ * @author rasmikun
  */
 public class LinearPerceptronTest {
 
