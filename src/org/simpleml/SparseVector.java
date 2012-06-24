@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class SparseVector implements Vector {
     private TIntDoubleMap map;
-    private int vector_size = -1;
+    private int vectorSize = -1;
 
     SparseVector(TIntDoubleMap map) {
         this.map = new TIntDoubleHashMap(map);
@@ -20,8 +20,8 @@ public class SparseVector implements Vector {
 
         while (iterator.hasNext()) {
             int key = iterator.key();
-            if (vector_size < key) {
-                vector_size = key + 1;
+            if (vectorSize < key) {
+                vectorSize = key + 1;
             }
         }
     }
@@ -31,8 +31,8 @@ public class SparseVector implements Vector {
 
         while (iterator.hasNext()) {
             IndexedValue value = iterator.next();
-            if (vector_size < value.getIndex()) {
-                vector_size = value.getIndex() + 1;
+            if (vectorSize < value.getIndex()) {
+                vectorSize = value.getIndex() + 1;
             }
             this.map.put(value.getIndex(), value.getValue());
         }
@@ -46,8 +46,8 @@ public class SparseVector implements Vector {
 
         while (keyIterator.hasNext()) {
             int key = keyIterator.next();
-            if (vector_size < key) {
-                vector_size = key + 1;
+            if (vectorSize < key) {
+                vectorSize = key + 1;
             }
             this.map.put(key, valIterator.next());
         }
@@ -56,8 +56,8 @@ public class SparseVector implements Vector {
 
     @Override
     public double get(int index) {
-        if (index >= vector_size) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vector_size);
+        if (index >= vectorSize) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vectorSize);
         }
         if (index < 0) {
             throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
@@ -71,8 +71,8 @@ public class SparseVector implements Vector {
 
     @Override
     public void set(int index, double value) {
-        if (index >= vector_size) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vector_size);
+        if (index >= vectorSize) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vectorSize);
         }
         if (index < 0) {
             throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
@@ -82,16 +82,16 @@ public class SparseVector implements Vector {
 
     @Override
     public int size() {
-        return vector_size;
+        return vectorSize;
     }
 
     @Override
     public double innerProduct(Vector vector) {
-        if (vector.size() != vector_size) {
-            throw new IllegalArgumentException("Illegal size of vectors: " + vector_size + " != " + vector.size());
+        if (vector.size() != vectorSize) {
+            throw new IllegalArgumentException("Illegal size of vectors: " + vectorSize + " != " + vector.size());
         }
         double result = 0d;
-        for (int i = 0; i < vector_size; i++) {
+        for (int i = 0; i < vectorSize; i++) {
             if (map.containsKey(i)) {
                 result += map.get(i) * vector.get(i);
             }
@@ -101,10 +101,10 @@ public class SparseVector implements Vector {
 
     @Override
     public void addToThis(Vector vector, double scalar) {
-        if (vector.size() != vector_size) {
-            throw new IllegalArgumentException("Illegal size of vectors: " + vector_size + " != " + vector.size());
+        if (vector.size() != vectorSize) {
+            throw new IllegalArgumentException("Illegal size of vectors: " + vectorSize + " != " + vector.size());
         }
-        for (int i = 0; i < vector_size; i++) {
+        for (int i = 0; i < vectorSize; i++) {
             map.put(i, this.get(i) + vector.get(i) * scalar);
         }
     }
