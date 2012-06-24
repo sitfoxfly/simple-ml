@@ -1,4 +1,6 @@
-package org.simpleml;
+package org.simpleml.struct;
+
+import java.util.Iterator;
 
 /**
  * @author rasmikun
@@ -19,8 +21,13 @@ public class LabeledVector implements Vector {
     }
 
     @Override
-    public void set(int index, double value) {
-        vector.set(index, value);
+    public Iterator<Vector.Entry> sparseIterator() {
+        return vector.sparseIterator();
+    }
+
+    @Override
+    public double innerProduct(Vector thatVector) {
+        return vector.innerProduct(thatVector);
     }
 
     @Override
@@ -28,14 +35,8 @@ public class LabeledVector implements Vector {
         return vector.size();
     }
 
-    @Override
-    public double innerProduct(Vector vector) {
-        return this.vector.innerProduct(vector);
-    }
-
-    @Override
-    public void addToThis(Vector vector, double scalar) {
-        this.vector.addToThis(vector, scalar);
+    public Vector getInnerVector() {
+        return vector;
     }
 
     public int getLabel() {
@@ -49,6 +50,5 @@ public class LabeledVector implements Vector {
     @Override
     public String toString() {
         return "[" + vector.toString() + ", " + label + "]";
-
     }
 }

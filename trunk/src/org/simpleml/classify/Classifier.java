@@ -1,4 +1,7 @@
-package org.simpleml;
+package org.simpleml.classify;
+
+import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.Vector;
 
 /**
  * @author rasmikun

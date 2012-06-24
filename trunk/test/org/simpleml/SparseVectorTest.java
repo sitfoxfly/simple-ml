@@ -2,6 +2,10 @@ package org.simpleml;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.simpleml.struct.ArrayVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.SparseHashVector;
+import org.simpleml.struct.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +15,9 @@ import java.util.Map;
  * @author rasmikun
  */
 public class SparseVectorTest {
-    private Vector aVector = new ArrayVector(new double[]{1, 1, 1, 0, 0, 1});
-    private Vector sVector;
+
+    private MutableVector arrayVector = new ArrayVector(new double[]{1, 1, 1, 0, 0, 1});
+    private MutableVector sparseVector;
 
     @Test
     public void testSetSparseVectorTest() throws Exception {
@@ -22,11 +27,11 @@ public class SparseVectorTest {
         map.put(2, 1d);
         map.put(5, 1d);
 
-        sVector = new SparseVector(map);
+        sparseVector = new SparseHashVector(map, 6);
 
-        Assert.assertEquals(sVector.size(), aVector.size());
-        for (int i = 0; i < aVector.size(); i++) {
-            Assert.assertEquals(sVector.get(i), aVector.get(i));
+        Assert.assertEquals(sparseVector.size(), arrayVector.size());
+        for (int i = 0; i < arrayVector.size(); i++) {
+            Assert.assertEquals(sparseVector.get(i), arrayVector.get(i));
         }
     }
 
@@ -38,27 +43,27 @@ public class SparseVectorTest {
         arrayList.add(new IndexedValue(2, 1d));
         arrayList.add(new IndexedValue(5, 1d));
 
-        Vector otherSparseVector = new SparseVector(arrayList.iterator());
+        Vector otherSparseVector = new SparseHashVector(arrayList.iterator(), 6);
 
-        Assert.assertEquals(otherSparseVector.size(), aVector.size());
-        for (int i = 0; i < aVector.size(); i++) {
-            Assert.assertEquals(aVector.get(i), otherSparseVector.get(i));
+        Assert.assertEquals(otherSparseVector.size(), arrayVector.size());
+        for (int i = 0; i < arrayVector.size(); i++) {
+            Assert.assertEquals(arrayVector.get(i), otherSparseVector.get(i));
         }
     }
 
     @Test
     public void testInnerProductSparseVectorTest() throws Exception {
-        Assert.assertEquals(sVector.innerProduct(aVector), aVector.innerProduct(aVector));
-        Assert.assertEquals(sVector.innerProduct(sVector), aVector.innerProduct(aVector));
-        Assert.assertEquals(sVector.innerProduct(sVector), aVector.innerProduct(sVector));
+        Assert.assertEquals(sparseVector.innerProduct(arrayVector), arrayVector.innerProduct(arrayVector));
+        Assert.assertEquals(sparseVector.innerProduct(sparseVector), arrayVector.innerProduct(arrayVector));
+        Assert.assertEquals(sparseVector.innerProduct(sparseVector), arrayVector.innerProduct(sparseVector));
     }
 
     @Test
     public void testSumSparseVectorTest() throws Exception {
-        sVector.addToThis(sVector, 2);
-        aVector.addToThis(aVector, 2);
-        for (int i = 0; i < sVector.size(); i++) {
-            Assert.assertEquals(aVector.get(i), sVector.get(i));
+        sparseVector.addToThis(sparseVector, 2);
+        arrayVector.addToThis(arrayVector, 2);
+        for (int i = 0; i < sparseVector.size(); i++) {
+            Assert.assertEquals(arrayVector.get(i), sparseVector.get(i));
         }
     }
 

@@ -1,4 +1,10 @@
-package org.simpleml;
+package org.simpleml.classify;
+
+import org.simpleml.struct.ArrayVector;
+import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.Vector;
+import org.simpleml.util.VectorUtil;
 
 /**
  * @author rasmikun
@@ -6,23 +12,23 @@ package org.simpleml;
 public class LinearPerceptron implements Classifier {
 
     private static final double DEFAULT_LEARNING_RATE = 1.0;
-    private static final int DEFAULT_NUM_ITERATION = 1000;
+    private static final int DEFAULT_NUM_ITERATION = 100;
 
     private double learningRate = DEFAULT_LEARNING_RATE;
     private int numIteration = DEFAULT_NUM_ITERATION;
 
-    private Vector w;
+    private MutableVector w;
 
-    public LinearPerceptron(Vector w) {
-        this.w = w;
+    public LinearPerceptron(int dimension) {
+        this.w = new ArrayVector(dimension);
     }
 
     @Override
     public void train(Iterable<LabeledVector> list) {
         for (int iteration = 0; iteration < numIteration; iteration++) {
             for (LabeledVector labeledVector : list) {
-                if (w.innerProduct(labeledVector) * labeledVector.getLabel() <= 0) {
-                    w.addToThis(labeledVector, labeledVector.getLabel() * learningRate);
+                if (w.innerProduct(labeledVector.getInnerVector()) * labeledVector.getLabel() <= 0) {
+                    w.addToThis(labeledVector.getInnerVector(), labeledVector.getLabel() * learningRate);
                 }
             }
         }
@@ -50,6 +56,6 @@ public class LinearPerceptron implements Classifier {
     }
 
     public Vector getWeights() {
-        return w;
+        return VectorUtil.immutableVector(w);
     }
 }
