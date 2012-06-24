@@ -15,11 +15,23 @@ public class ArrayVector implements Vector {
 
     @Override
     public double get(int index) {
+        if (vector.length <= index) {
+            throw new IllegalArgumentException("Illegal index: " + index + " >= " + this.vector.length);
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Illegal index: " + index + " < 0");
+        }
         return vector[index];
     }
 
     @Override
     public void set(int index, double value) {
+        if (vector.length <= index) {
+            throw new IllegalArgumentException("Illegal index: " + index + " >= " + this.vector.length);
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Illegal index: " + index + " < 0");
+        }
         vector[index] = value;
     }
 

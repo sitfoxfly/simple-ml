@@ -1,7 +1,11 @@
 package org.simpleml;
 
+import gnu.trove.iterator.TIntDoubleIterator;
 import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
+
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author rasmikun
@@ -10,24 +14,54 @@ public class SparseVector implements Vector {
     private TIntDoubleMap map;
     private int vector_size = -1;
 
-    private int[] xrange(int from, int to) {
-        int[] result = new int[to - from];
+    SparseVector(TIntDoubleMap map) {
+        this.map = new TIntDoubleHashMap(map);
+        TIntDoubleIterator iterator = map.iterator();
 
-        for (int i = from; i < to; i++) {
-            result[i] = i;
+        while (iterator.hasNext()) {
+            int key = iterator.key();
+            if (vector_size < key) {
+                vector_size = key + 1;
+            }
         }
-
-        return result;
     }
 
-    SparseVector(double[] vector) {
-        map = new TIntDoubleHashMap(xrange(0, vector.length), vector);
+    SparseVector(Iterator<IndexedValue> iterator) {
+        this.map = new TIntDoubleHashMap();
+
+        while (iterator.hasNext()) {
+            IndexedValue value = iterator.next();
+            if (vector_size < value.getIndex()) {
+                vector_size = value.getIndex() + 1;
+            }
+            this.map.put(value.getIndex(), value.getValue());
+        }
     }
+
+    SparseVector(Map<Integer, Double> map) {
+        this.map = new TIntDoubleHashMap();
+
+        Iterator<Integer> keyIterator = map.keySet().iterator();
+        Iterator<Double> valIterator = map.values().iterator();
+
+        while (keyIterator.hasNext()) {
+            int key = keyIterator.next();
+            if (vector_size < key) {
+                vector_size = key + 1;
+            }
+            this.map.put(key, valIterator.next());
+        }
+    }
+
 
     @Override
     public double get(int index) {
-        if (vector_size < index)
-            throw new IllegalArgumentException("Illegal vector index: " + vector_size + " < " + index);
+        if (index >= vector_size) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vector_size);
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
+        }
         if (map.containsKey(index)) {
             return map.get(index);
         } else {
@@ -37,11 +71,13 @@ public class SparseVector implements Vector {
 
     @Override
     public void set(int index, double value) {
-        if (index < 0) throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
-        map.put(index, value);
-        if (vector_size < index) {
-            vector_size = index + 1;
+        if (index >= vector_size) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + vector_size);
         }
+        if (index < 0) {
+            throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
+        }
+        map.put(index, value);
     }
 
     @Override
