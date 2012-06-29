@@ -9,7 +9,7 @@ import gnu.trove.procedure.TIntDoubleProcedure;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO: Unsupported Operations
@@ -20,8 +20,21 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     private static class TreeNode {
 
+        private static final String NODE_NAME = "O";
+        private static final String NULL = "X";
+
         private static enum Color {
-            RED, BLACK
+            RED, BLACK;
+
+            private final String shortColor;
+
+            private Color() {
+                this.shortColor = this.toString().substring(0, 1);
+            }
+
+            public String getShortColor() {
+                return shortColor;
+            }
         }
 
         private TreeNode parent;
@@ -40,12 +53,26 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
             this.parent = parent;
         }
 
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("( TreeNode ");
+            sb.append("{").append(key).append(": ").append(value).append("} ");
+            sb.append("[").append(color.getShortColor()).append("]");
+            sb.append(" l: ").append(left == null ? NULL : NODE_NAME);
+            sb.append(" r: ").append(right == null ? NULL : NODE_NAME);
+            sb.append(" )");
+            return sb.toString();
+        }
     }
 
     private TreeNode root;
 
+    private int size;
+
     public TIntDoubleTreeMap() {
         root = null;
+        size = 0;
     }
 
     private static TreeNode getSibling(TreeNode node) {
@@ -77,7 +104,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         }
     }
 
-    private static void insertCase1(TreeNode node) {
+    private void insertCase1(TreeNode node) {
         if (node.parent == null) {
             node.color = TreeNode.Color.BLACK;
         } else {
@@ -85,26 +112,26 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         }
     }
 
-    private static void insertCase2(TreeNode node) {
+    private void insertCase2(TreeNode node) {
         if (node.parent.color != TreeNode.Color.BLACK) {
             insertCase3(node);
         }
     }
 
-    private static void insertCase3(TreeNode node) {
+    private void insertCase3(TreeNode node) {
         TreeNode uncle = getUncle(node);
         if (uncle != null && uncle.color == TreeNode.Color.RED) {
             node.parent.color = TreeNode.Color.BLACK;
             uncle.color = TreeNode.Color.BLACK;
             TreeNode grandparent = uncle.parent;
             grandparent.color = TreeNode.Color.RED;
-            insertCase1(node);
+            insertCase1(grandparent);
         } else {
             insertCase4(node);
         }
     }
 
-    private static void insertCase4(TreeNode node) {
+    private void insertCase4(TreeNode node) {
         TreeNode grandparent = getGrandparent(node);
         TreeNode parent = node.parent;
         if (node == parent.right && parent == grandparent.left) {
@@ -117,7 +144,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         insertCase5(node);
     }
 
-    private static void insertCase5(TreeNode node) {
+    private void insertCase5(TreeNode node) {
         TreeNode grandparent = getGrandparent(node);
 
         node.parent.color = TreeNode.Color.BLACK;
@@ -129,24 +156,66 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         }
     }
 
-    private static void rotateLeft(TreeNode node) {
-        final TreeNode parent = node.parent;
-        final TreeNode rightChild = node.right;
-        parent.left = rightChild;
-        node.right = rightChild.left;
-        rightChild.left = node;
-        rightChild.parent = parent;
-        node.parent = rightChild;
+    private void rotateLeft(TreeNode node) {
+        if (node.parent != null) {
+            final TreeNode parent = node.parent;
+            final TreeNode rightChild = node.right;
+            if (parent.right == node) {
+                parent.right = rightChild;
+            } else if (parent.left == node) {
+                parent.left = rightChild;
+            } else {
+                throw new AssertionError("Node has illegal parent");
+            }
+            node.right = rightChild.left;
+            if (rightChild.left != null) {
+                rightChild.left.parent = node;
+            }
+            rightChild.left = node;
+            rightChild.parent = parent;
+            node.parent = rightChild;
+        } else {
+            final TreeNode rightChild = node.right;
+            node.right = rightChild.left;
+            if (rightChild.left != null) {
+                rightChild.left.parent = node;
+            }
+            node.parent = rightChild;
+            rightChild.left = node;
+            rightChild.parent = null;
+            root = rightChild;
+        }
     }
 
-    private static void rotateRight(TreeNode node) {
-        final TreeNode parent = node.parent;
-        final TreeNode leftChild = node.left;
-        parent.left = leftChild;
-        node.left = leftChild.right;
-        leftChild.right = node;
-        leftChild.parent = parent;
-        node.parent = leftChild;
+    private void rotateRight(TreeNode node) {
+        if (node.parent != null) {
+            final TreeNode parent = node.parent;
+            final TreeNode leftChild = node.left;
+            if (parent.right == node) {
+                parent.right = leftChild;
+            } else if (parent.left == node) {
+                parent.left = leftChild;
+            } else {
+                throw new AssertionError("Node has illegal parent");
+            }
+            node.left = leftChild.right;
+            if (leftChild.right != null) {
+                leftChild.right.parent = node;
+            }
+            leftChild.right = node;
+            leftChild.parent = parent;
+            node.parent = leftChild;
+        } else {
+            final TreeNode leftChild = node.left;
+            node.left = leftChild.right;
+            if (leftChild.right != null) {
+                leftChild.right.parent = node;
+            }
+            node.parent = leftChild;
+            leftChild.right = node;
+            leftChild.parent = null;
+            root = leftChild;
+        }
     }
 
     public double put(int key, double value, boolean replaceOldValue) {
@@ -170,17 +239,26 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
                 return prevValue;
             }
         }
-        insertCase1(new TreeNode(key, value, TreeNode.Color.RED, parent));
+        TreeNode newNode = new TreeNode(key, value, TreeNode.Color.RED, parent);
+        if (parent == null) {
+            root = newNode;
+        } else if (parent.key > key) {
+            parent.left = newNode;
+        } else {
+            parent.right = newNode;
+        }
+        insertCase1(newNode);
+        size++;
         return getNoEntryValue();
     }
 
-    private static void deleteCase1(TreeNode node) {
+    private void deleteCase1(TreeNode node) {
         if (node.parent != null) {
             deleteCase2(node);
         }
     }
 
-    private static void deleteCase2(TreeNode node) {
+    private void deleteCase2(TreeNode node) {
         TreeNode sibling = getSibling(node);
         if (sibling.color == TreeNode.Color.RED) {
             node.parent.color = TreeNode.Color.RED;
@@ -194,7 +272,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         deleteCase3(node);
     }
 
-    private static void deleteCase3(TreeNode node) {
+    private void deleteCase3(TreeNode node) {
         TreeNode sibling = getSibling(node);
 
         if (node.parent.color == TreeNode.Color.BLACK && sibling.color == TreeNode.Color.BLACK
@@ -205,7 +283,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
             deleteCase4(node);
     }
 
-    private static void deleteCase4(TreeNode node) {
+    private void deleteCase4(TreeNode node) {
         TreeNode sibling = getSibling(node);
 
         if (node.parent.color == TreeNode.Color.RED && sibling.color == TreeNode.Color.BLACK
@@ -217,7 +295,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         deleteCase5(node);
     }
 
-    private static void deleteCase5(TreeNode node) {
+    private void deleteCase5(TreeNode node) {
         TreeNode sibling = getSibling(node);
 
         if (sibling.color == TreeNode.Color.BLACK) {
@@ -238,7 +316,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         deleteCase6(node);
     }
 
-    private static void deleteCase6(TreeNode node) {
+    private void deleteCase6(TreeNode node) {
         TreeNode sibling = getSibling(node);
 
         sibling.color = node.parent.color;
@@ -278,8 +356,12 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
     @Override
     public double remove(int key) {
         TreeNode node = search(key);
+        if (node == null) {
+            return getNoEntryValue();
+        }
         double result = node.value;
         remove(node);
+        size--;
         return result;
     }
 
@@ -393,7 +475,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     @Override
     public TIntDoubleIterator iterator() {
-        throw new UnsupportedOperationException();
+        return new TreeIterator(this);
     }
 
     @Override
@@ -408,7 +490,7 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException();
+        return size;
     }
 
     @Override
@@ -479,6 +561,81 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
     @Override
     public double getNoEntryValue() {
         return 0d;
+    }
+
+    public static class TreeIterator implements TIntDoubleIterator {
+
+        private Iterator<TreeNode> innerIterator;
+        private TIntDoubleTreeMap tree;
+
+        private TreeNode currentNode = null;
+
+        public TreeIterator(TIntDoubleTreeMap tree) {
+            this.tree = tree;
+            List<TreeNode> nodes = new ArrayList<TreeNode>(tree.size);
+            Stack<TreeNode> stack = new Stack<TreeNode>();
+            TreeNode node = tree.root;
+            while (node != null) {
+                while (node.left != null) {
+                    stack.add(node);
+                    node = node.left;
+                }
+                stack.add(node);
+                while (!stack.isEmpty()) {
+                    node = stack.pop();
+                    nodes.add(node);
+                    if (node.right != null) {
+                        break;
+                    }
+                }
+                node = node.right;
+            }
+            innerIterator = nodes.iterator();
+        }
+
+        @Override
+        public int key() {
+            return currentNode.key;
+        }
+
+        @Override
+        public double value() {
+            return currentNode.value;
+        }
+
+        @Override
+        public double setValue(double v) {
+            return currentNode.value = v;
+        }
+
+        @Override
+        public void advance() {
+            currentNode = innerIterator.next();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return innerIterator.hasNext();
+        }
+
+        @Override
+        public void remove() {
+            tree.remove(currentNode);
+        }
+    }
+
+    public static void main(String[] args) {
+        TIntDoubleTreeMap map = new TIntDoubleTreeMap();
+
+        for (int i = 0; i < 10; i += 2) {
+            map.put(i, 2d * i);
+        }
+
+        final TIntDoubleIterator iterator = map.iterator();
+        while (iterator.hasNext()) {
+            iterator.advance();
+            System.out.println(iterator.key() + " " + iterator.value());
+        }
     }
 
 }

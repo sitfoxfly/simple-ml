@@ -1,8 +1,7 @@
-package org.simpleml;
+package org.simpleml.classify;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.simpleml.classify.LinearPerceptron;
 import org.simpleml.struct.ArrayVector;
 import org.simpleml.struct.LabeledVector;
 
