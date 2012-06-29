@@ -3,11 +3,13 @@ package org.simpleml.struct;
 import gnu.trove.TDoubleCollection;
 import gnu.trove.function.TDoubleFunction;
 import gnu.trove.iterator.TIntDoubleIterator;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.procedure.TDoubleProcedure;
 import gnu.trove.procedure.TIntDoubleProcedure;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.*;
 
@@ -342,9 +344,9 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
     private TreeNode search(int key) {
         TreeNode node = root;
         while (node != null) {
-            if (root.key == key) {
-                return root;
-            } else if (root.key > key) {
+            if (node.key == key) {
+                return node;
+            } else if (node.key > key) {
                 node = node.left;
             } else {
                 node = node.right;
@@ -495,12 +497,20 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     @Override
     public TIntSet keySet() {
-        throw new UnsupportedOperationException();
+        return new TIntHashSet(keys());
     }
 
     @Override
     public int[] keys() {
-        throw new UnsupportedOperationException();
+        TreeIterator iterator = new TreeIterator(this);
+        int[] keys = new int[size];
+        int i = 0;
+        while (iterator.hasNext()) {
+            iterator.advance();
+            keys[i] = iterator.key();
+            i++;
+        }
+        return keys;
     }
 
     @Override
@@ -510,12 +520,20 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     @Override
     public TDoubleCollection valueCollection() {
-        throw new UnsupportedOperationException();
+        return new TDoubleArrayList(values());
     }
 
     @Override
     public double[] values() {
-        throw new UnsupportedOperationException();
+        TreeIterator iterator = new TreeIterator(this);
+        double[] values = new double[size];
+        int i = 0;
+        while (iterator.hasNext()) {
+            iterator.advance();
+            values[i] = iterator.value();
+            i++;
+        }
+        return values;
     }
 
     @Override
