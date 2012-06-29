@@ -13,19 +13,21 @@ import java.util.Map;
  */
 public class SparseVectorTest {
 
+    // TODO: Code more comfortable testing env (Vectors initialization)
     private MutableVector arrayVector = new ArrayVector(new double[]{1, 1, 1, 0, 0, 1});
     private MutableVector sparseVector;
 
-    @Test
-    public void testSetSparseVectorTest() throws Exception {
+    {
         Map<Integer, Double> map = new HashMap<Integer, Double>();
         map.put(0, 1d);
         map.put(1, 1d);
         map.put(2, 1d);
         map.put(5, 1d);
-
         sparseVector = new SparseHashVector(map, 6);
+    }
 
+    @Test
+    public void testSetSparseVectorTest() throws Exception {
         Assert.assertEquals(sparseVector.size(), arrayVector.size());
         for (int i = 0; i < arrayVector.size(); i++) {
             Assert.assertEquals(sparseVector.get(i), arrayVector.get(i));
