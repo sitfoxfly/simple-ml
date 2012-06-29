@@ -1,11 +1,8 @@
-package org.simpleml;
+package org.simpleml.struct;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import org.simpleml.struct.ArrayVector;
-import org.simpleml.struct.MutableVector;
-import org.simpleml.struct.SparseHashVector;
-import org.simpleml.struct.Vector;
+import org.simpleml.IndexedValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
