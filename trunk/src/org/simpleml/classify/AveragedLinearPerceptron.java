@@ -27,7 +27,7 @@ public class AveragedLinearPerceptron implements Classifier {
     public void train(Iterable<LabeledVector> list) {
         int numSummed = 0;
         for (int iteration = 0; iteration < numIteration; iteration++) {
-            ArrayVector localWeights = new ArrayVector(w.size());
+            ArrayVector localWeights = new ArrayVector(w.getDimension());
             for (LabeledVector labeledVector : list) {
                 if (localWeights.innerProduct(labeledVector.getInnerVector()) * labeledVector.getLabel() <= 0) {
                     localWeights.addToThis(labeledVector.getInnerVector(), labeledVector.getLabel() * learningRate);

@@ -31,8 +31,13 @@ public class LabeledVector implements Vector {
     }
 
     @Override
-    public int size() {
-        return vector.size();
+    public int getDimension() {
+        return vector.getDimension();
+    }
+
+    @Override
+    public int sparseSize() {
+        return vector.sparseSize();
     }
 
     public Vector getInnerVector() {

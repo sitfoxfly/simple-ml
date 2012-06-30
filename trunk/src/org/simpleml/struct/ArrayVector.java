@@ -5,17 +5,35 @@ import java.util.Iterator;
 
 /**
  * @author rasmikun
+ * @author sitfoxfly
  */
 public class ArrayVector implements MutableVector {
 
     private double[] data;
 
-    public ArrayVector(int n) {
-        this.data = new double[n];
+    public ArrayVector(int dimension) {
+        this.data = new double[dimension];
     }
 
     public ArrayVector(double[] data) {
         this.data = Arrays.copyOf(data, data.length);
+        for (int i = 0; i < this.data.length; i++) {
+            this.data[i] = reduceToZero(this.data[i]);
+        }
+    }
+
+    private void checkDimensions(int thatDim) {
+        final int thisDim = getDimension();
+        if (thisDim != thatDim) {
+            throw new IllegalArgumentException("Dimensions of vectors are not equals: " + thatDim + " != " + thisDim);
+        }
+    }
+
+    private double reduceToZero(double value) {
+        if (Math.abs(value) < ZERO_EPSILON) {
+            return ZERO;
+        }
+        return value;
     }
 
     @Override
@@ -30,38 +48,34 @@ public class ArrayVector implements MutableVector {
 
     @Override
     public void addToThis(Vector thatVector) {
-        if (thatVector.size() != this.data.length) {
-            throw new IllegalArgumentException("Illegal size of vectors: " + this.data.length + " != " + thatVector.size());
-        }
+        checkDimensions(thatVector.getDimension());
         Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
             Entry entry = iterator.next();
-            this.data[entry.getIndex()] += entry.getValue();
+            final int index = entry.getIndex();
+            data[index] = reduceToZero(data[index] + entry.getValue());
         }
     }
 
     @Override
     public void addToThis(Vector thatVector, double scalar) {
-        if (thatVector.size() != this.data.length) {
-            throw new IllegalArgumentException("Illegal size of vectors: " + this.data.length + " != " + thatVector.size());
-        }
+        checkDimensions(thatVector.getDimension());
         Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
             Entry entry = iterator.next();
-            this.data[entry.getIndex()] += entry.getValue() * scalar;
+            final int index = entry.getIndex();
+            this.data[index] = reduceToZero(this.data[index] + entry.getValue() * scalar);
         }
     }
 
     @Override
-    public int size() {
+    public int getDimension() {
         return data.length;
     }
 
     @Override
     public double innerProduct(Vector thatVector) {
-        if (thatVector.size() != this.data.length) {
-            throw new IllegalArgumentException("Illegal size of vectors: " + this.data.length + " != " + thatVector.size());
-        }
+        checkDimensions(thatVector.getDimension());
         double result = 0d;
         Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
@@ -73,7 +87,12 @@ public class ArrayVector implements MutableVector {
 
     @Override
     public Iterator<Entry> sparseIterator() {
-        return new ArrayVectorSparseIterator();
+        return new ArrayVectorDenseIterator();
+    }
+
+    @Override
+    public int sparseSize() {
+        return data.length;
     }
 
     @Override
@@ -112,6 +131,42 @@ public class ArrayVector implements MutableVector {
         }
     }
 
+    private class ArrayVectorDenseIterator implements Iterator<Entry> {
+
+        private int index = 0;
+
+        @Override
+        public boolean hasNext() {
+            return index < data.length;
+        }
+
+        @Override
+        public Entry next() {
+            return new Entry() {
+                @Override
+                public int getIndex() {
+                    return index;
+                }
+
+                @Override
+                public double getValue() {
+                    return data[index];
+                }
+
+                @Override
+                public void setValue(double value) {
+                    data[index] = value;
+                }
+            };
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+/*
     private class ArrayVectorSparseIterator implements Iterator<Entry> {
 
         private boolean hasNext = false;
@@ -119,7 +174,7 @@ public class ArrayVector implements MutableVector {
 
         private boolean nextNonZeroValue() {
             index++;
-            while (data.length > index && data[index] == 0d) {
+            while (data.length > index && Math.abs(data[index]) < ZERO_EPSILON) {
                 index++;
             }
             return data.length > index;
@@ -150,5 +205,6 @@ public class ArrayVector implements MutableVector {
             throw new UnsupportedOperationException();
         }
     }
+*/
 
 }

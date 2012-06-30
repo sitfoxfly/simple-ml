@@ -3,6 +3,7 @@ package org.simpleml.struct;
 import gnu.trove.iterator.TIntDoubleIterator;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.simpleml.struct.map.TIntDoubleTreeMap;
 
 import java.util.Iterator;
 import java.util.Random;
