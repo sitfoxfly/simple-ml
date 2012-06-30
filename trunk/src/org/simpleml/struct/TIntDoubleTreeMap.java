@@ -14,8 +14,6 @@ import gnu.trove.set.hash.TIntHashSet;
 import java.util.*;
 
 /**
- * TODO: Unsupported Operations
- *
  * @author sitfoxfly
  */
 public class TIntDoubleTreeMap implements TIntDoubleMap {
@@ -482,12 +480,20 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
 
     @Override
     public void putAll(Map<? extends Integer, ? extends Double> map) {
-        throw new UnsupportedOperationException();
+        for (Map.Entry<? extends Integer, ? extends Double> entry : map.entrySet()) {
+            this.put(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override
-    public void putAll(TIntDoubleMap tIntDoubleMap) {
-        throw new UnsupportedOperationException();
+    public void putAll(TIntDoubleMap map) {
+        map.forEachEntry(new TIntDoubleProcedure() {
+            @Override
+            public boolean execute(int key, double value) {
+                put(key, value);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -514,8 +520,18 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
     }
 
     @Override
-    public int[] keys(int[] ints) {
-        throw new UnsupportedOperationException();
+    public int[] keys(int[] keysArray) {
+        if (size > keysArray.length) {
+            return keys();
+        }
+        TreeIterator iterator = new TreeIterator(this);
+        int i = 0;
+        while (iterator.hasNext()) {
+            iterator.advance();
+            keysArray[i] = iterator.key();
+            i++;
+        }
+        return keysArray;
     }
 
     @Override
@@ -537,38 +553,89 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
     }
 
     @Override
-    public double[] values(double[] doubles) {
-        throw new UnsupportedOperationException();
+    public double[] values(double[] valuesArray) {
+        if (size > valuesArray.length) {
+            return values();
+        }
+        TreeIterator iterator = new TreeIterator(this);
+        int i = 0;
+        while (iterator.hasNext()) {
+            iterator.advance();
+            valuesArray[i] = iterator.value();
+            i++;
+        }
+        return valuesArray;
     }
 
     @Override
-    public boolean containsValue(double v) {
-        throw new UnsupportedOperationException();
+    public boolean containsValue(double value) {
+        TreeIterator iterator = new TreeIterator(this);
+        while (iterator.hasNext()) {
+            iterator.advance();
+            if (iterator.value() == value) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public boolean forEachKey(TIntProcedure tIntProcedure) {
-        throw new UnsupportedOperationException();
+    public boolean forEachKey(TIntProcedure procedure) {
+        TreeIterator iterator = new TreeIterator(this);
+        while (iterator.hasNext()) {
+            iterator.advance();
+            if (!procedure.execute(iterator.key())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public boolean forEachValue(TDoubleProcedure tDoubleProcedure) {
-        throw new UnsupportedOperationException();
+    public boolean forEachValue(TDoubleProcedure procedure) {
+        TreeIterator iterator = new TreeIterator(this);
+        while (iterator.hasNext()) {
+            iterator.advance();
+            if (!procedure.execute(iterator.value())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public boolean forEachEntry(TIntDoubleProcedure tIntDoubleProcedure) {
-        throw new UnsupportedOperationException();
+    public boolean forEachEntry(TIntDoubleProcedure procedure) {
+        TreeIterator iterator = new TreeIterator(this);
+        while (iterator.hasNext()) {
+            iterator.advance();
+            if (!procedure.execute(iterator.key(), iterator.value())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public void transformValues(TDoubleFunction tDoubleFunction) {
-        throw new UnsupportedOperationException();
+    public void transformValues(TDoubleFunction function) {
+        TreeIterator iterator = new TreeIterator(this);
+        while (iterator.hasNext()) {
+            iterator.advance();
+            iterator.setValue(function.execute(iterator.value()));
+        }
     }
 
     @Override
-    public boolean retainEntries(TIntDoubleProcedure tIntDoubleProcedure) {
-        throw new UnsupportedOperationException();
+    public boolean retainEntries(TIntDoubleProcedure procedure) {
+        TreeIterator iterator = new TreeIterator(this);
+        boolean isModified = false;
+        while (iterator.hasNext()) {
+            iterator.advance();
+            if (procedure.execute(iterator.key(), iterator.value())) {
+                isModified = true;
+                iterator.remove();
+            }
+        }
+        return isModified;
     }
 
     @Override
