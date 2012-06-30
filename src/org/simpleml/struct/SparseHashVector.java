@@ -13,12 +13,15 @@ import java.util.Map;
 /**
  * @author rasmikun
  */
-public class SparseHashVector implements MutableVector, Vector {
-
-    private static final double ZERO_VALUE = 0d;
+public class SparseHashVector implements MutableVector {
 
     private TIntDoubleMap map;
     private int dimension;
+
+    public SparseHashVector(int dimension) {
+        map = new TIntDoubleHashMap(dimension);
+        this.dimension = dimension;
+    }
 
     public SparseHashVector(TIntDoubleMap values, int dimension) {
         map = new TIntDoubleHashMap(values);
@@ -48,69 +51,94 @@ public class SparseHashVector implements MutableVector, Vector {
         }
     }
 
-    @Override
-    public double get(int index) {
+    private void checkDimensions(int thatDim) {
+        final int thisDim = getDimension();
+        if (thisDim != thatDim) {
+            throw new IllegalArgumentException("Dimensions of vectors are not equals: " + thatDim + " != " + thisDim);
+        }
+    }
+
+    private void checkIndex(int index) {
         if (index >= dimension) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + dimension);
+            throw new IllegalArgumentException("Illegal index: " + index + " >= " + dimension);
         }
         if (index < 0) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
+            throw new IllegalArgumentException("Illegal index: " + index + " < 0");
         }
+    }
+
+    @Override
+    public double get(int index) {
+        checkIndex(index);
         if (map.containsKey(index)) {
             return map.get(index);
         } else {
-            return ZERO_VALUE;
+            return ZERO;
         }
     }
 
     @Override
     public void set(int index, double value) {
-        if (index >= dimension) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " >= " + dimension);
-        }
-        if (index < 0) {
-            throw new IllegalArgumentException("Illegal vector index: " + index + " < 0");
-        }
+        checkIndex(index);
         map.put(index, value);
     }
 
     @Override
-    public int size() {
+    public int getDimension() {
         return this.dimension;
     }
 
     @Override
     public double innerProduct(Vector thatVector) {
-        if (thatVector.size() != this.dimension) {
-            throw new IllegalArgumentException("Illegal dimension of vectors: " + this.dimension + " != " + thatVector.size());
-        }
-        double result = 0d;
-        TIntDoubleIterator iterator = map.iterator();
-        while (iterator.hasNext()) {
-            iterator.advance();
-            result += iterator.value() * thatVector.get(iterator.key());
+        checkDimensions(thatVector.getDimension());
+        double result = ZERO;
+        if (sparseSize() <= thatVector.sparseSize()) {
+            TIntDoubleIterator iterator = map.iterator();
+            while (iterator.hasNext()) {
+                iterator.advance();
+                result += iterator.value() * thatVector.get(iterator.key());
+            }
+        } else {
+            Iterator<Entry> iterator = thatVector.sparseIterator();
+            while (iterator.hasNext()) {
+                final Entry entry = iterator.next();
+                result += map.get(entry.getIndex()) * entry.getValue();
+            }
         }
         return result;
     }
 
     @Override
     public void addToThis(Vector thatVector) {
-        TIntDoubleIterator iterator = this.map.iterator();
+        checkDimensions(thatVector.getDimension());
+        final Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
-            iterator.advance();
-            iterator.setValue(iterator.value() + thatVector.get(iterator.key()));
+            final Entry entry = iterator.next();
+            final int index = entry.getIndex();
+            double newValue = entry.getValue() + this.map.get(index);
+            if (Math.abs(newValue) < ZERO_EPSILON) {
+                this.map.remove(index);
+            } else {
+                this.map.put(index, newValue);
+            }
         }
     }
 
     public void addToThis(Vector thatVector, double scalar) {
-        if (thatVector.size() != dimension) {
-            throw new IllegalArgumentException("Illegal dimension of vectors: " + dimension + " != " + thatVector.size());
+        checkDimensions(thatVector.getDimension());
+        if (scalar == ZERO) {
+            return;
         }
-
-        TIntDoubleIterator iterator = this.map.iterator();
+        final Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
-            iterator.advance();
-            iterator.setValue(iterator.value() + thatVector.get(iterator.key()) * scalar);
+            final Entry entry = iterator.next();
+            final int index = entry.getIndex();
+            double newValue = entry.getValue() * scalar + this.map.get(index);
+            if (Math.abs(newValue) < ZERO_EPSILON) {
+                this.map.remove(index);
+            } else {
+                this.map.put(index, newValue);
+            }
         }
     }
 
@@ -127,6 +155,9 @@ public class SparseHashVector implements MutableVector, Vector {
 
             @Override
             public Entry next() {
+                if (Math.abs(innerIterator.value()) < ZERO_EPSILON) {
+                    innerIterator.remove();
+                }
                 innerIterator.advance();
                 return new Entry() {
 
@@ -148,7 +179,11 @@ public class SparseHashVector implements MutableVector, Vector {
                     @Override
                     public void setValue(double value) {
                         if (innerIterator.key() != index) {
-                            map.put(index, value);
+                            if (Math.abs(value) < ZERO_EPSILON) {
+                                map.remove(index);
+                            } else {
+                                map.put(index, value);
+                            }
                             return;
                         }
                         innerIterator.setValue(value);
@@ -158,9 +193,14 @@ public class SparseHashVector implements MutableVector, Vector {
 
             @Override
             public void remove() {
-                throw new UnsupportedOperationException();
+                innerIterator.remove();
             }
         };
+    }
+
+    @Override
+    public int sparseSize() {
+        return map.size();
     }
 
     @Override

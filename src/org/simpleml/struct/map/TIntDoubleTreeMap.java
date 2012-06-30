@@ -1,4 +1,4 @@
-package org.simpleml.struct;
+package org.simpleml.struct.map;
 
 import gnu.trove.TDoubleCollection;
 import gnu.trove.function.TDoubleFunction;
@@ -66,13 +66,15 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         }
     }
 
-    private TreeNode root;
+    private TreeNode root = null;
 
-    private int size;
+    private int size = 0;
+
+    public TIntDoubleTreeMap(TIntDoubleMap map) {
+        putAll(map);
+    }
 
     public TIntDoubleTreeMap() {
-        root = null;
-        size = 0;
     }
 
     private static TreeNode getSibling(TreeNode node) {

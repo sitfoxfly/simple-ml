@@ -28,8 +28,8 @@ public class SparseVectorTest {
 
     @Test
     public void testSetSparseVectorTest() throws Exception {
-        Assert.assertEquals(sparseVector.size(), arrayVector.size());
-        for (int i = 0; i < arrayVector.size(); i++) {
+        Assert.assertEquals(sparseVector.getDimension(), arrayVector.getDimension());
+        for (int i = 0; i < arrayVector.getDimension(); i++) {
             Assert.assertEquals(sparseVector.get(i), arrayVector.get(i));
         }
     }
@@ -44,8 +44,8 @@ public class SparseVectorTest {
 
         Vector otherSparseVector = new SparseHashVector(arrayList.iterator(), 6);
 
-        Assert.assertEquals(otherSparseVector.size(), arrayVector.size());
-        for (int i = 0; i < arrayVector.size(); i++) {
+        Assert.assertEquals(otherSparseVector.getDimension(), arrayVector.getDimension());
+        for (int i = 0; i < arrayVector.getDimension(); i++) {
             Assert.assertEquals(arrayVector.get(i), otherSparseVector.get(i));
         }
     }
@@ -61,7 +61,7 @@ public class SparseVectorTest {
     public void testSumSparseVectorTest() throws Exception {
         sparseVector.addToThis(sparseVector, 2);
         arrayVector.addToThis(arrayVector, 2);
-        for (int i = 0; i < sparseVector.size(); i++) {
+        for (int i = 0; i < sparseVector.getDimension(); i++) {
             Assert.assertEquals(arrayVector.get(i), sparseVector.get(i));
         }
     }

@@ -31,13 +31,18 @@ public class VectorUtil {
         }
 
         @Override
-        public int size() {
-            return vector.size();
+        public int getDimension() {
+            return vector.getDimension();
         }
 
         @Override
         public double innerProduct(Vector thatVector) {
             return this.vector.innerProduct(thatVector);
+        }
+
+        @Override
+        public int sparseSize() {
+            return vector.sparseSize();
         }
 
         @Override
