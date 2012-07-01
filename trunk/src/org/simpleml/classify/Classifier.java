@@ -10,6 +10,6 @@ public interface Classifier {
 
     public void train(Iterable<LabeledVector> list);
 
-    public int classify(Vector l);
+    public int classify(Vector vector);
 
 }

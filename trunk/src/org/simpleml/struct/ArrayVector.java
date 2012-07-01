@@ -76,7 +76,7 @@ public class ArrayVector implements MutableVector {
     @Override
     public double innerProduct(Vector thatVector) {
         checkDimensions(thatVector.getDimension());
-        double result = 0d;
+        double result = ZERO;
         Iterator<Entry> iterator = thatVector.sparseIterator();
         while (iterator.hasNext()) {
             Entry entry = iterator.next();
@@ -142,22 +142,9 @@ public class ArrayVector implements MutableVector {
 
         @Override
         public Entry next() {
-            return new Entry() {
-                @Override
-                public int getIndex() {
-                    return index;
-                }
-
-                @Override
-                public double getValue() {
-                    return data[index];
-                }
-
-                @Override
-                public void setValue(double value) {
-                    data[index] = value;
-                }
-            };
+            final Entry result = new ArrayVectorEntry(index);
+            index++;
+            return result;
         }
 
         @Override
