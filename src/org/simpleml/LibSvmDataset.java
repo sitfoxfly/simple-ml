@@ -1,6 +1,8 @@
 package org.simpleml;
 
 import org.simpleml.classify.AveragedLinearPerceptron;
+import org.simpleml.classify.Classifier;
+import org.simpleml.classify.OneInstPegasosSVM;
 import org.simpleml.struct.LabeledVector;
 import org.simpleml.struct.SparseHashVector;
 
@@ -53,11 +55,14 @@ public class LibSvmDataset {
     public static void main(String[] args) throws IOException {
         final int numOfFeatures = 5000;
         LibSvmDataset dataset = new LibSvmDataset(new File("dataset/gisette_scale"), numOfFeatures);
-        AveragedLinearPerceptron perceptron = new AveragedLinearPerceptron(numOfFeatures);
+        Classifier perceptron = new AveragedLinearPerceptron(numOfFeatures);
+
         final List<LabeledVector> list = dataset.readAll();
         perceptron.train(list);
 
-        int correct = 0;
+        int correct;
+
+        correct = 0;
         for (LabeledVector vector : list) {
             int predictedLabel = perceptron.classify(vector.getInnerVector());
             if (predictedLabel == vector.getLabel()) {
@@ -65,7 +70,20 @@ public class LibSvmDataset {
             }
         }
 
-        System.out.println("A = " + ((double) correct / list.size()));
+        System.out.println("A(AvgLinPer) = " + ((double) correct / list.size()));
+
+        Classifier pegasos = new OneInstPegasosSVM(numOfFeatures);
+        pegasos.train(list);
+
+        correct = 0;
+        for (LabeledVector vector : list) {
+            int predictedLabel = pegasos.classify(vector.getInnerVector());
+            if (predictedLabel == vector.getLabel()) {
+                correct++;
+            }
+        }
+
+        System.out.println("A(PegasosSVM) = " + ((double) correct / list.size()));
     }
 
 }
