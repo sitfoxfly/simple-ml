@@ -157,6 +157,7 @@ public class SparseHashVector implements MutableVector {
         return new Iterator<Entry>() {
 
             private TIntDoubleIterator innerIterator = map.iterator();
+            private boolean isNotfirstTimes = false;
 
             @Override
             public boolean hasNext() {
@@ -165,8 +166,9 @@ public class SparseHashVector implements MutableVector {
 
             @Override
             public Entry next() {
-                if (Math.abs(innerIterator.value()) < ZERO_EPSILON) {
+                if (isNotfirstTimes && Math.abs(innerIterator.value()) < ZERO_EPSILON) {
                     innerIterator.remove();
+                    isNotfirstTimes = true;
                 }
                 innerIterator.advance();
                 return new Entry() {
