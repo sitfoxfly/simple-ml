@@ -23,6 +23,16 @@ public class SparseHashVector implements MutableVector {
         this.dimension = dimension;
     }
 
+    public SparseHashVector(double[] values) {
+        this.dimension = values.length;
+        for (int i = 0; i < values.length; i++) {
+            if (Math.abs(values[i]) < ZERO_EPSILON) {
+                continue;
+            }
+            map.put(i, values[i]);
+        }
+    }
+
     public SparseHashVector(TIntDoubleMap values, int dimension) {
         map = new TIntDoubleHashMap(values);
         this.dimension = dimension;
