@@ -125,10 +125,6 @@ public class ArrayVector implements MutableVector {
             return data[index];
         }
 
-        @Override
-        public void setValue(double value) {
-            data[index] = value;
-        }
     }
 
     private class ArrayVectorDenseIterator implements Iterator<Entry> {

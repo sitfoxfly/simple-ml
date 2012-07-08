@@ -23,10 +23,9 @@ public class LinearPerceptron implements Classifier {
         this.w = new ArrayVector(dimension);
     }
 
-    @Override
-    public void train(Iterable<LabeledVector> list) {
+    public void train(Iterable<LabeledVector> data) {
         for (int iteration = 0; iteration < numIteration; iteration++) {
-            for (LabeledVector labeledVector : list) {
+            for (LabeledVector labeledVector : data) {
                 if (w.innerProduct(labeledVector.getInnerVector()) * labeledVector.getLabel() <= 0) {
                     w.addToThis(labeledVector.getInnerVector(), labeledVector.getLabel() * learningRate);
                 }
@@ -58,4 +57,5 @@ public class LinearPerceptron implements Classifier {
     public Vector getWeights() {
         return VectorUtil.immutableVector(w);
     }
+
 }

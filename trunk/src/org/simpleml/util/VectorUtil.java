@@ -71,11 +71,6 @@ public class VectorUtil {
                         public double getValue() {
                             return innerEntry.getValue();
                         }
-
-                        @Override
-                        public void setValue(double value) {
-                            throw new UnsupportedOperationException();
-                        }
                     };
                 }
 
@@ -85,5 +80,16 @@ public class VectorUtil {
                 }
             };
         }
+    }
+
+    public static String toSparseString(Vector v) {
+        StringBuilder sb = new StringBuilder("V = [");
+        final Iterator<Vector.Entry> sparseIterator = v.sparseIterator();
+        while (sparseIterator.hasNext()) {
+            final Vector.Entry entry = sparseIterator.next();
+            sb.append(entry.getIndex()).append(": ").append(entry.getValue()).append("; ");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

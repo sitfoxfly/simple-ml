@@ -19,12 +19,13 @@ public class SparseHashVector implements MutableVector {
     private int dimension;
 
     public SparseHashVector(int dimension) {
-        map = new TIntDoubleHashMap(dimension);
+        map = new TIntDoubleHashMap();
         this.dimension = dimension;
     }
 
     public SparseHashVector(double[] values) {
         this.dimension = values.length;
+        map = new TIntDoubleHashMap();
         for (int i = 0; i < values.length; i++) {
             if (Math.abs(values[i]) < ZERO_EPSILON) {
                 continue;
@@ -34,17 +35,22 @@ public class SparseHashVector implements MutableVector {
     }
 
     public SparseHashVector(TIntDoubleMap values, int dimension) {
-        map = new TIntDoubleHashMap(values);
         this.dimension = dimension;
+        map = new TIntDoubleHashMap(values);
     }
 
     public SparseHashVector(Collection<IndexedValue> values, int dimension) {
-        this(values.iterator(), dimension);
+        this.dimension = dimension;
+        map = new TIntDoubleHashMap(values.size());
+
+        for (IndexedValue value : values) {
+            map.put(value.getIndex(), value.getValue());
+        }
     }
 
     public SparseHashVector(Iterator<IndexedValue> values, int dimension) {
-        map = new TIntDoubleHashMap();
         this.dimension = dimension;
+        map = new TIntDoubleHashMap();
 
         while (values.hasNext()) {
             IndexedValue value = values.next();
@@ -53,8 +59,8 @@ public class SparseHashVector implements MutableVector {
     }
 
     public SparseHashVector(Map<Integer, Double> values, int dimension) {
-        map = new TIntDoubleHashMap();
         this.dimension = dimension;
+        map = new TIntDoubleHashMap();
 
         for (Map.Entry<Integer, Double> entry : values.entrySet()) {
             map.put(entry.getKey(), entry.getValue());
@@ -157,7 +163,6 @@ public class SparseHashVector implements MutableVector {
         return new Iterator<Entry>() {
 
             private TIntDoubleIterator innerIterator = map.iterator();
-            private boolean isNotfirstTimes = false;
 
             @Override
             public boolean hasNext() {
@@ -166,10 +171,6 @@ public class SparseHashVector implements MutableVector {
 
             @Override
             public Entry next() {
-                if (isNotfirstTimes && Math.abs(innerIterator.value()) < ZERO_EPSILON) {
-                    innerIterator.remove();
-                    isNotfirstTimes = true;
-                }
                 innerIterator.advance();
                 return new Entry() {
 
@@ -186,19 +187,6 @@ public class SparseHashVector implements MutableVector {
                             return innerIterator.value();
                         }
                         return map.get(index);
-                    }
-
-                    @Override
-                    public void setValue(double value) {
-                        if (innerIterator.key() != index) {
-                            if (Math.abs(value) < ZERO_EPSILON) {
-                                map.remove(index);
-                            } else {
-                                map.put(index, value);
-                            }
-                            return;
-                        }
-                        innerIterator.setValue(value);
                     }
                 };
             }

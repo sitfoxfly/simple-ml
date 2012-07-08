@@ -1,8 +1,8 @@
 package org.simpleml;
 
-import org.simpleml.classify.AveragedLinearPerceptron;
-import org.simpleml.classify.Classifier;
-import org.simpleml.classify.OneInstPegasosSVM;
+import org.simpleml.classify.LinearPerceptron;
+import org.simpleml.classify.PegasosSVM;
+import org.simpleml.gen.RandomBunchGenerator;
 import org.simpleml.struct.LabeledVector;
 import org.simpleml.struct.SparseHashVector;
 
@@ -53,9 +53,9 @@ public class LibSvmDataset {
     }
 
     public static void main(String[] args) throws IOException {
-        final int numOfFeatures = 5000;
-        LibSvmDataset dataset = new LibSvmDataset(new File("dataset/gisette_scale"), numOfFeatures);
-        Classifier perceptron = new AveragedLinearPerceptron(numOfFeatures);
+        final int numOfFeatures = 123;
+        LibSvmDataset dataset = new LibSvmDataset(new File("dataset/a.libsvm"), numOfFeatures);
+        LinearPerceptron perceptron = new LinearPerceptron(numOfFeatures);
 
         final List<LabeledVector> list = dataset.readAll();
         perceptron.train(list);
@@ -72,8 +72,10 @@ public class LibSvmDataset {
 
         System.out.println("A(AvgLinPer) = " + ((double) correct / list.size()));
 
-        Classifier pegasos = new OneInstPegasosSVM(numOfFeatures);
-        pegasos.train(list);
+        PegasosSVM pegasos = new PegasosSVM(numOfFeatures);
+        pegasos.setLambda(1.0);
+        pegasos.setNumIterations(5000);
+        pegasos.train(new RandomBunchGenerator<LabeledVector>(10, list));
 
         correct = 0;
         for (LabeledVector vector : list) {
