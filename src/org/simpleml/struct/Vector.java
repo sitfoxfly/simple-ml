@@ -26,8 +26,6 @@ public interface Vector {
 
         public double getValue();
 
-        public void setValue(double value);
-
     }
 
 }

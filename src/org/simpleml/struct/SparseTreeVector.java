@@ -22,13 +22,13 @@ public class SparseTreeVector implements MutableVector {
     private int dimension;
 
     public SparseTreeVector(int dimension) {
-        map = new TIntDoubleTreeMap();
         this.dimension = dimension;
+        map = new TIntDoubleTreeMap();
     }
 
     public SparseTreeVector(TIntDoubleMap values, int dimension) {
-        map = new TIntDoubleTreeMap(values);
         this.dimension = dimension;
+        map = new TIntDoubleTreeMap(values);
     }
 
     public SparseTreeVector(Collection<IndexedValue> values, int dimension) {
@@ -36,8 +36,8 @@ public class SparseTreeVector implements MutableVector {
     }
 
     public SparseTreeVector(Iterator<IndexedValue> values, int dimension) {
-        map = new TIntDoubleTreeMap();
         this.dimension = dimension;
+        map = new TIntDoubleTreeMap();
 
         while (values.hasNext()) {
             IndexedValue value = values.next();
@@ -46,11 +46,22 @@ public class SparseTreeVector implements MutableVector {
     }
 
     public SparseTreeVector(Map<Integer, Double> values, int dimension) {
-        map = new TIntDoubleTreeMap();
         this.dimension = dimension;
+        map = new TIntDoubleTreeMap();
 
         for (Map.Entry<Integer, Double> entry : values.entrySet()) {
             map.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public SparseTreeVector(double[] vector) {
+        this.dimension = vector.length;
+        map = new TIntDoubleTreeMap();
+        for (int i = 0; i < vector.length; i++) {
+            if (Math.abs(vector[i]) < ZERO_EPSILON) {
+                continue;
+            }
+            map.put(i, vector[i]);
         }
     }
 
@@ -158,9 +169,6 @@ public class SparseTreeVector implements MutableVector {
 
             @Override
             public Entry next() {
-                if (Math.abs(innerIterator.value()) < ZERO_EPSILON) {
-                    innerIterator.remove();
-                }
                 innerIterator.advance();
                 return new Entry() {
 
@@ -179,18 +187,6 @@ public class SparseTreeVector implements MutableVector {
                         return map.get(index);
                     }
 
-                    @Override
-                    public void setValue(double value) {
-                        if (innerIterator.key() != index) {
-                            if (Math.abs(value) < ZERO_EPSILON) {
-                                map.remove(index);
-                            } else {
-                                map.put(index, value);
-                            }
-                            return;
-                        }
-                        innerIterator.setValue(value);
-                    }
                 };
             }
 
