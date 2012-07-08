@@ -35,7 +35,7 @@ public class AveragedLinearPerceptron implements Classifier {
             w.addToThis(localWeights);
             numSummed++;
         }
-        w.product(1.0 / numSummed);
+        w.scaleBy(1.0 / numSummed);
     }
 
     @Override

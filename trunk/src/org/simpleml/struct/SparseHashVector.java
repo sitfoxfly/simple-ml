@@ -44,6 +44,7 @@ public class SparseHashVector implements MutableVector {
         map = new TIntDoubleHashMap(values.size());
 
         for (IndexedValue value : values) {
+            checkIndex(value.getIndex());
             map.put(value.getIndex(), value.getValue());
         }
     }
@@ -77,8 +78,7 @@ public class SparseHashVector implements MutableVector {
     private void checkIndex(int index) {
         if (index >= dimension) {
             throw new IllegalArgumentException("Illegal index: " + index + " >= " + dimension);
-        }
-        if (index < 0) {
+        } else if (index < 0) {
             throw new IllegalArgumentException("Illegal index: " + index + " < 0");
         }
     }
@@ -204,11 +204,11 @@ public class SparseHashVector implements MutableVector {
     }
 
     @Override
-    public void product(final double scalar) {
+    public void scaleBy(final double s) {
         map.transformValues(new TDoubleFunction() {
             @Override
             public double execute(double v) {
-                return v * scalar;
+                return v * s;
             }
         });
     }

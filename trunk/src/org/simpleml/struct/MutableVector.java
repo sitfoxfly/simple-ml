@@ -11,6 +11,6 @@ public interface MutableVector extends Vector {
 
     public void addToThis(Vector thatVector, double scalar);
 
-    public void product(double scalar);
+    public void scaleBy(double s);
 
 }

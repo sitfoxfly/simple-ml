@@ -96,9 +96,9 @@ public class ArrayVector implements MutableVector {
     }
 
     @Override
-    public void product(double scalar) {
+    public void scaleBy(double s) {
         for (int i = 0; i < data.length; i++) {
-            data[i] *= scalar;
+            data[i] *= s;
         }
     }
 
