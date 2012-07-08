@@ -2,6 +2,7 @@ package org.simpleml;
 
 /**
  * @author rasmikun
+ * @author sitfoxfly
  */
 public final class IndexedValue {
 
@@ -21,4 +22,30 @@ public final class IndexedValue {
         return value;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IndexedValue that = (IndexedValue) o;
+
+        return index == that.index && Double.compare(that.value, value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = index;
+        temp = value != 0.0d ? Double.doubleToLongBits(value) : 0L;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append('{').append(index).append(": ").append(value).append('}');
+        return sb.toString();
+    }
 }

@@ -1,6 +1,6 @@
 package org.simpleml;
 
-import org.simpleml.classify.LinearPerceptron;
+import org.simpleml.classify.AveragedLinearPerceptron;
 import org.simpleml.classify.PegasosSVM;
 import org.simpleml.gen.RandomBunchGenerator;
 import org.simpleml.struct.LabeledVector;
@@ -44,7 +44,7 @@ public class LibSvmDataset {
             int label = Integer.valueOf(cutPlus(vals[0]));
             List<IndexedValue> values = new LinkedList<IndexedValue>();
             for (int i = 1; i < vals.length; i += 2) {
-                values.add(new IndexedValue(Integer.parseInt(vals[1]), Double.parseDouble(vals[2])));
+                values.add(new IndexedValue(Integer.parseInt(vals[i]), Double.parseDouble(vals[i + 1])));
             }
             result.add(new LabeledVector(new SparseHashVector(values, numOfFeatures), label));
         }
@@ -53,9 +53,9 @@ public class LibSvmDataset {
     }
 
     public static void main(String[] args) throws IOException {
-        final int numOfFeatures = 123;
-        LibSvmDataset dataset = new LibSvmDataset(new File("dataset/a.libsvm"), numOfFeatures);
-        LinearPerceptron perceptron = new LinearPerceptron(numOfFeatures);
+        final int numOfFeatures = 5001;
+        LibSvmDataset dataset = new LibSvmDataset(new File("dataset/g.libsvm"), numOfFeatures);
+        AveragedLinearPerceptron perceptron = new AveragedLinearPerceptron(numOfFeatures);
 
         final List<LabeledVector> list = dataset.readAll();
         perceptron.train(list);
@@ -73,9 +73,9 @@ public class LibSvmDataset {
         System.out.println("A(AvgLinPer) = " + ((double) correct / list.size()));
 
         PegasosSVM pegasos = new PegasosSVM(numOfFeatures);
-        pegasos.setLambda(1.0);
-        pegasos.setNumIterations(5000);
-        pegasos.train(new RandomBunchGenerator<LabeledVector>(10, list));
+        pegasos.setLambda(1.0E-4);
+        pegasos.setNumIterations(500);
+        pegasos.train(new RandomBunchGenerator<LabeledVector>(400, list));
 
         correct = 0;
         for (LabeledVector vector : list) {

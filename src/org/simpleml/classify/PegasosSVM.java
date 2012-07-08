@@ -1,6 +1,7 @@
 package org.simpleml.classify;
 
 import org.simpleml.struct.*;
+import org.simpleml.util.VectorUtil;
 
 import java.util.Iterator;
 
@@ -12,10 +13,10 @@ import java.util.Iterator;
 public class PegasosSVM implements Classifier {
 
     private static final int DEFAULT_NUM_ITERATIONS = 500;
-    private static final double DEFAULT_LAMBDA = 1.0E-4;
+    private static final double DEFAULT_REGULARIZATION = 1.0E-4;
 
     private int numIterations = DEFAULT_NUM_ITERATIONS;
-    private double lambda = DEFAULT_LAMBDA;
+    private double lambda = DEFAULT_REGULARIZATION;
 
     private MutableVector weights;
 
@@ -25,8 +26,7 @@ public class PegasosSVM implements Classifier {
 
     public PegasosSVM(int dimension) {
         this.dimension = dimension;
-        double[] initWeights = new double[dimension + 1];
-        weights = new ArrayVector(initWeights);
+        weights = new ArrayVector(new double[dimension + 1]);
         alpha = 1.0;
         mu = 0.0;
     }
@@ -99,6 +99,17 @@ public class PegasosSVM implements Classifier {
         this.lambda = lambda;
     }
 
+    public int getDimension() {
+        return dimension;
+    }
+
+    public Vector getWeights() {
+        return VectorUtil.immutableVector(weights);
+    }
+
+    /**
+     * adds bias feature, what allow to learn bias term
+     */
     private static class BiasedVector implements Vector {
 
         private int dimension;
@@ -138,5 +149,4 @@ public class PegasosSVM implements Classifier {
         }
 
     }
-
 }
