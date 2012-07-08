@@ -711,18 +711,4 @@ public class TIntDoubleTreeMap implements TIntDoubleMap {
         }
     }
 
-    public static void main(String[] args) {
-        TIntDoubleTreeMap map = new TIntDoubleTreeMap();
-
-        for (int i = 0; i < 10; i += 2) {
-            map.put(i, 2d * i);
-        }
-
-        final TIntDoubleIterator iterator = map.iterator();
-        while (iterator.hasNext()) {
-            iterator.advance();
-            System.out.println(iterator.key() + " " + iterator.value());
-        }
-    }
-
 }
