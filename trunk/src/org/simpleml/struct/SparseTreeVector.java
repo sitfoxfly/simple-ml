@@ -122,6 +122,17 @@ public class SparseTreeVector implements MutableVector {
     }
 
     @Override
+    public double getL2() {
+        double result = ZERO;
+        final Iterator<Entry> iterator = sparseIterator();
+        while (iterator.hasNext()) {
+            double value = iterator.next().getValue();
+            result += value * value;
+        }
+        return Math.sqrt(result);
+    }
+
+    @Override
     public void addToThis(Vector thatVector) {
         checkDimensions(thatVector.getDimension());
         final Iterator<Entry> iterator = thatVector.sparseIterator();

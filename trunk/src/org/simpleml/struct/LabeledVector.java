@@ -31,6 +31,11 @@ public class LabeledVector implements Vector {
     }
 
     @Override
+    public double getL2() {
+        return vector.getL2();
+    }
+
+    @Override
     public int getDimension() {
         return vector.getDimension();
     }

@@ -86,6 +86,15 @@ public class ArrayVector implements MutableVector {
     }
 
     @Override
+    public double getL2() {
+        double result = 0d;
+        for (int i = 0; i < data.length; i++) {
+            result += data[i] * data[i];
+        }
+        return Math.sqrt(result);
+    }
+
+    @Override
     public Iterator<Entry> sparseIterator() {
         return new ArrayVectorDenseIterator();
     }

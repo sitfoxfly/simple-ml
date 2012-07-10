@@ -20,6 +20,8 @@ public interface Vector {
 
     public double innerProduct(Vector thatVector);
 
+    public double getL2();
+
     public interface Entry {
 
         public int getIndex();
