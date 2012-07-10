@@ -9,30 +9,28 @@ import org.simpleml.struct.Vector;
  */
 public class PassiveAggressivePerceptron implements Classifier {
 
+    enum algorithmType {PA1, PA2, PA3}
+
     private static final int DEFAULT_AGGRESSIVE_PARAMETER = 1;
     private static final int DEFAULT_NUM_ITERATION = 100;
-    private static final setAlgorithmEnum DEFAULT_SET_ALGORITHM = setAlgorithmEnum.PA1;
+    private static final algorithmType DEFAULT_SET_ALGORITHM = algorithmType.PA1;
 
     private int aggressive_parameter = DEFAULT_AGGRESSIVE_PARAMETER;
-
     private int numIteration = DEFAULT_NUM_ITERATION;
-
-    private setAlgorithmEnum setType = DEFAULT_SET_ALGORITHM;
+    private algorithmType setType = DEFAULT_SET_ALGORITHM;
 
     private ArrayVector w;
 
-    enum setAlgorithmEnum {PA1, PA2, PA3}
-
-    private double setPA1(LabeledVector labeledVector, double l) {
+    private double algorithmPA1(LabeledVector labeledVector, double l) {
         double vectorRate = labeledVector.getL2();
         return l / vectorRate * vectorRate;
     }
 
-    private double setPA2(LabeledVector labeledVector, double l) {
-        return Math.min(aggressive_parameter, setPA1(labeledVector, l));
+    private double algorithmPA2(LabeledVector labeledVector, double l) {
+        return Math.min(aggressive_parameter, algorithmPA1(labeledVector, l));
     }
 
-    private double setPA3(LabeledVector labeledVector, double l) {
+    private double algorithmPA3(LabeledVector labeledVector, double l) {
         double vectorRate = labeledVector.getL2();
         return l / (vectorRate * vectorRate + 1 / (2 * aggressive_parameter));
     }
@@ -41,28 +39,23 @@ public class PassiveAggressivePerceptron implements Classifier {
         w = new ArrayVector(dimension);
     }
 
-    @Override
     public void train(Iterable<LabeledVector> list) {
         for (int i = 0; i < numIteration; i++) {
             for (LabeledVector labeledVector : list) {
-                double y = labeledVector.getLabel();
-                // suffer loss
-                double l = Math.max(0d, 1 - y * w.innerProduct(labeledVector));
-                // set
-                double tau = 0d;
+                double sufferLoss = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(labeledVector));
+                double updateValue = 0d;
                 switch (setType) {
                     case PA1:
-                        tau = setPA1(labeledVector, l);
+                        updateValue = algorithmPA1(labeledVector, sufferLoss);
                         break;
                     case PA2:
-                        tau = setPA2(labeledVector, l);
+                        updateValue = algorithmPA2(labeledVector, sufferLoss);
                         break;
                     case PA3:
-                        tau = setPA3(labeledVector, l);
+                        updateValue = algorithmPA3(labeledVector, sufferLoss);
                         break;
                 }
-                // update
-                w.addToThis(labeledVector, tau * y);
+                w.addToThis(labeledVector, updateValue * labeledVector.getLabel());
             }
         }
     }
@@ -88,7 +81,7 @@ public class PassiveAggressivePerceptron implements Classifier {
         return numIteration;
     }
 
-    public void setAlgorithm(setAlgorithmEnum e) {
+    public void setAlgorithm(algorithmType e) {
         setType = e;
     }
 }
