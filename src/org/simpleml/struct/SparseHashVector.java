@@ -127,9 +127,9 @@ public class SparseHashVector implements MutableVector {
     @Override
     public double getL2() {
         double result = ZERO;
-        final Iterator<Entry> iterator = sparseIterator();
+        final TIntDoubleIterator iterator = map.iterator();
         while (iterator.hasNext()) {
-            double value = iterator.next().getValue();
+            double value = iterator.value();
             result += value * value;
         }
         return Math.sqrt(result);

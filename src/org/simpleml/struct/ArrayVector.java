@@ -88,8 +88,8 @@ public class ArrayVector implements MutableVector {
     @Override
     public double getL2() {
         double result = 0d;
-        for (int i = 0; i < data.length; i++) {
-            result += data[i] * data[i];
+        for (double value : data) {
+            result += value * value;
         }
         return Math.sqrt(result);
     }
