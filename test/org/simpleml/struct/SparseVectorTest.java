@@ -26,6 +26,7 @@ public class SparseVectorTest {
         sparseVector = new SparseHashVector(map, 6);
     }
 
+
     @Test
     public void testSetSparseVectorTest() throws Exception {
         Assert.assertEquals(sparseVector.getDimension(), arrayVector.getDimension());
@@ -64,6 +65,17 @@ public class SparseVectorTest {
         for (int i = 0; i < sparseVector.getDimension(); i++) {
             Assert.assertEquals(arrayVector.get(i), sparseVector.get(i));
         }
+    }
+
+
+    @Test
+    public void testEuclideanRate() throws Exception {
+        Vector v = new SparseHashVector(new double[]{0, 0, 0});
+        Assert.assertEquals(0d, v.getL2());
+        Vector v2 = new SparseHashVector(new double[]{0, 0, 2});
+        Assert.assertEquals(2d, v2.getL2());
+        Vector v3 = new SparseHashVector(new double[]{4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 4, 4});
+        Assert.assertEquals(8d, v3.getL2());
     }
 
 }
