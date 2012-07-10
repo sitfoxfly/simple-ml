@@ -42,7 +42,7 @@ public class VectorUtil {
 
         @Override
         public double getL2() {
-            return this.vector.getL2();
+            return vector.getL2();
         }
 
         @Override
