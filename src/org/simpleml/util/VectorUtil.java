@@ -41,6 +41,11 @@ public class VectorUtil {
         }
 
         @Override
+        public double getL2() {
+            return this.vector.getL2();
+        }
+
+        @Override
         public int sparseSize() {
             return vector.sparseSize();
         }
