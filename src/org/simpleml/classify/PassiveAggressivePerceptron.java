@@ -49,32 +49,33 @@ public class PassiveAggressivePerceptron implements Classifier {
         return lossValue / calcSquaredL2(vector);
     }
 
-    private double getLR2(LabeledVector labeledVector, double lossValue) {
-        return Math.min(aggressiveness, getLR1(labeledVector, lossValue));
+    private double getLR2(Vector vector, double lossValue) {
+        return Math.min(aggressiveness, getLR1(vector, lossValue));
     }
 
-    private double getLR3(LabeledVector labeledVector, double lossValue) {
-        double squaredL2 = calcSquaredL2(labeledVector);
+    private double getLR3(Vector vector, double lossValue) {
+        double squaredL2 = calcSquaredL2(vector);
         return lossValue / (squaredL2 + 0.5 / aggressiveness);
     }
 
     public void train(Iterable<LabeledVector> data) {
         for (int i = 0; i < numIteration; i++) {
             for (LabeledVector labeledVector : data) {
-                double lossValue = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(labeledVector.getInnerVector()));
+                final Vector innerVector = labeledVector.getInnerVector();
+                double lossValue = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(innerVector));
                 double learningRate = 0d;
                 switch (algorithm) {
                     case PA1:
-                        learningRate = getLR1(labeledVector, lossValue);
+                        learningRate = getLR1(innerVector, lossValue);
                         break;
                     case PA2:
-                        learningRate = getLR2(labeledVector, lossValue);
+                        learningRate = getLR2(innerVector, lossValue);
                         break;
                     case PA3:
-                        learningRate = getLR3(labeledVector, lossValue);
+                        learningRate = getLR3(innerVector, lossValue);
                         break;
                 }
-                w.addToThis(labeledVector, learningRate * labeledVector.getLabel());
+                w.addToThis(innerVector, learningRate * labeledVector.getLabel());
             }
         }
     }
@@ -100,8 +101,8 @@ public class PassiveAggressivePerceptron implements Classifier {
         return numIteration;
     }
 
-    public void setAlgorithm(AlgorithmType e) {
-        algorithm = e;
+    public void setAlgorithm(AlgorithmType algorithm) {
+        this.algorithm = algorithm;
     }
 
     public AlgorithmType getAlgorithm() {
