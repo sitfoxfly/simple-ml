@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author rasmikun
  */
-public class SparseVectorTest {
+public class SparseHashVectorTest {
 
     // TODO: Code more comfortable testing env (Vectors initialization)
     private MutableVector arrayVector = new ArrayVector(new double[]{1, 1, 1, 0, 0, 1});
@@ -69,11 +69,13 @@ public class SparseVectorTest {
 
 
     @Test
-    public void testEuclideanRate() throws Exception {
+    public void testGetL2() throws Exception {
         Vector v = new SparseHashVector(new double[]{0, 0, 0});
         Assert.assertEquals(0d, v.getL2());
+
         Vector v2 = new SparseHashVector(new double[]{0, 0, 2});
         Assert.assertEquals(2d, v2.getL2());
+
         Vector v3 = new SparseHashVector(new double[]{4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 4, 4});
         Assert.assertEquals(8d, v3.getL2());
     }

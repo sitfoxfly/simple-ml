@@ -2,60 +2,79 @@ package org.simpleml.classify;
 
 import org.simpleml.struct.ArrayVector;
 import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.MutableVector;
 import org.simpleml.struct.Vector;
 
+import java.util.Iterator;
+
 /**
+ * See the paper: Koby Crammer at al. 2006. Online Passive-Aggressive Algorithms.
+ *
  * @author rasmikun
+ * @author sitfoxfly
  */
 public class PassiveAggressivePerceptron implements Classifier {
 
-    enum algorithmType {PA1, PA2, PA3}
+    public static enum AlgorithmType {
+        PA1,
+        PA2,
+        PA3
+    }
 
-    private static final int DEFAULT_AGGRESSIVE_PARAMETER = 1;
+    private static final AlgorithmType DEFAULT_ALGORITHM = AlgorithmType.PA2;
+    private static final double DEFAULT_AGGRESSIVENESS = 0.5;
     private static final int DEFAULT_NUM_ITERATION = 100;
-    private static final algorithmType DEFAULT_SET_ALGORITHM = algorithmType.PA1;
 
-    private int aggressive_parameter = DEFAULT_AGGRESSIVE_PARAMETER;
+    private double aggressiveness = DEFAULT_AGGRESSIVENESS;
     private int numIteration = DEFAULT_NUM_ITERATION;
-    private algorithmType setType = DEFAULT_SET_ALGORITHM;
+    private AlgorithmType algorithm = DEFAULT_ALGORITHM;
 
-    private ArrayVector w;
-
-    private double algorithmPA1(LabeledVector labeledVector, double l) {
-        double vectorRate = labeledVector.getL2();
-        return l / vectorRate * vectorRate;
-    }
-
-    private double algorithmPA2(LabeledVector labeledVector, double l) {
-        return Math.min(aggressive_parameter, algorithmPA1(labeledVector, l));
-    }
-
-    private double algorithmPA3(LabeledVector labeledVector, double l) {
-        double vectorRate = labeledVector.getL2();
-        return l / (vectorRate * vectorRate + 1 / (2 * aggressive_parameter));
-    }
+    private MutableVector w;
 
     public PassiveAggressivePerceptron(int dimension) {
         w = new ArrayVector(dimension);
     }
 
-    public void train(Iterable<LabeledVector> list) {
+    private double calcSquaredL2(Vector vector) {
+        final Iterator<Vector.Entry> sparseIterator = vector.sparseIterator();
+        double squaredL2 = 0d;
+        while (sparseIterator.hasNext()) {
+            double value = sparseIterator.next().getValue();
+            squaredL2 += value * value;
+        }
+        return squaredL2;
+    }
+
+    private double getLR1(Vector vector, double lossValue) {
+        return lossValue / calcSquaredL2(vector);
+    }
+
+    private double getLR2(LabeledVector labeledVector, double lossValue) {
+        return Math.min(aggressiveness, getLR1(labeledVector, lossValue));
+    }
+
+    private double getLR3(LabeledVector labeledVector, double lossValue) {
+        double squaredL2 = calcSquaredL2(labeledVector);
+        return lossValue / (squaredL2 + 0.5 / aggressiveness);
+    }
+
+    public void train(Iterable<LabeledVector> data) {
         for (int i = 0; i < numIteration; i++) {
-            for (LabeledVector labeledVector : list) {
-                double sufferLoss = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(labeledVector));
-                double updateValue = 0d;
-                switch (setType) {
+            for (LabeledVector labeledVector : data) {
+                double lossValue = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(labeledVector.getInnerVector()));
+                double learningRate = 0d;
+                switch (algorithm) {
                     case PA1:
-                        updateValue = algorithmPA1(labeledVector, sufferLoss);
+                        learningRate = getLR1(labeledVector, lossValue);
                         break;
                     case PA2:
-                        updateValue = algorithmPA2(labeledVector, sufferLoss);
+                        learningRate = getLR2(labeledVector, lossValue);
                         break;
                     case PA3:
-                        updateValue = algorithmPA3(labeledVector, sufferLoss);
+                        learningRate = getLR3(labeledVector, lossValue);
                         break;
                 }
-                w.addToThis(labeledVector, updateValue * labeledVector.getLabel());
+                w.addToThis(labeledVector, learningRate * labeledVector.getLabel());
             }
         }
     }
@@ -65,12 +84,12 @@ public class PassiveAggressivePerceptron implements Classifier {
         return (int) Math.signum(w.innerProduct(vector));
     }
 
-    public int getAggressive_parameter() {
-        return aggressive_parameter;
+    public double getAggressiveness() {
+        return aggressiveness;
     }
 
-    public void setAggressive_parameter(int aggressive_parameter) {
-        this.aggressive_parameter = aggressive_parameter;
+    public void setAggressiveness(double aggressiveness) {
+        this.aggressiveness = aggressiveness;
     }
 
     public void setNumIteration(int numIteration) {
@@ -81,7 +100,11 @@ public class PassiveAggressivePerceptron implements Classifier {
         return numIteration;
     }
 
-    public void setAlgorithm(algorithmType e) {
-        setType = e;
+    public void setAlgorithm(AlgorithmType e) {
+        algorithm = e;
+    }
+
+    public AlgorithmType getAlgorithm() {
+        return algorithm;
     }
 }
