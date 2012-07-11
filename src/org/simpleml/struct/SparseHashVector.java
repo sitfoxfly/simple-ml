@@ -129,6 +129,7 @@ public class SparseHashVector implements MutableVector {
         double result = ZERO;
         final TIntDoubleIterator iterator = map.iterator();
         while (iterator.hasNext()) {
+            iterator.advance();
             double value = iterator.value();
             result += value * value;
         }

@@ -9,26 +9,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: rasmi
- * Date: 7/9/12
- * Time: 12:46 AM
- * To change this template use File | Settings | File Templates.
+ * @author rasmikun
  */
 public class PassiveAggressivePerceptronTest {
+
     @Test
     public void testPAPerceptron() throws Exception {
-        PassiveAggressivePerceptron perceptron = new PassiveAggressivePerceptron(3);
-        List<LabeledVector> trainingData = new LinkedList<LabeledVector>();
-
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{0, -1, 0}), -1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{1, 0, 1}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{0, 1, 0}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{1, 0, 1}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{-1, -1, -1}), -1));
+        final PassiveAggressivePerceptron perceptron = new PassiveAggressivePerceptron(3);
+        final List<LabeledVector> trainingData = TestUtil.getSimpleTrainingData();
 
         perceptron.train(trainingData);
-
         for (LabeledVector vector : trainingData) {
             int predictedLabel = perceptron.classify(vector.getInnerVector());
             Assert.assertEquals(vector.getLabel(), predictedLabel);

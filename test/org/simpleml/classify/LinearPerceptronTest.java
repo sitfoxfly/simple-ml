@@ -16,13 +16,7 @@ public class LinearPerceptronTest {
     @Test
     public void testLinearPerceptron() throws Exception {
         LinearPerceptron perceptron = new LinearPerceptron(3);
-        List<LabeledVector> trainingData = new LinkedList<LabeledVector>();
-
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{1, 0, 1}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{0, 1, 0}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{1, 0, 1}), 1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{-1, -1, -1}), -1));
-        trainingData.add(new LabeledVector(new ArrayVector(new double[]{0, -1, 0}), -1));
+        List<LabeledVector> trainingData = TestUtil.getSimpleTrainingData();
 
         perceptron.train(trainingData);
 

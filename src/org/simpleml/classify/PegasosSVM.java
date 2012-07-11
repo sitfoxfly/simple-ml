@@ -115,6 +115,11 @@ public class PegasosSVM implements Classifier {
         private int dimension;
         private Vector vector;
 
+        private BiasedVector(Vector vector) {
+            this.vector = vector;
+            this.dimension = vector.getDimension() + 1;
+        }
+
         @Override
         public double get(int index) {
             if (index == dimension - 1) {
@@ -139,13 +144,13 @@ public class PegasosSVM implements Classifier {
         }
 
         @Override
-        public double innerProduct(Vector thatVector) {
-            return vector.innerProduct(thatVector);
+        public double getL2() {
+            throw new UnsupportedOperationException();
         }
 
-        private BiasedVector(Vector vector) {
-            this.vector = vector;
-            this.dimension = vector.getDimension() + 1;
+        @Override
+        public double innerProduct(Vector thatVector) {
+            return vector.innerProduct(thatVector);
         }
 
     }
