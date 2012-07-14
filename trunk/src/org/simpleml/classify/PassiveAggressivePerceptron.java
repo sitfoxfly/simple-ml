@@ -37,13 +37,8 @@ public class PassiveAggressivePerceptron implements Classifier {
     }
 
     private double calcSquaredL2(Vector vector) {
-        final Iterator<Vector.Entry> sparseIterator = vector.sparseIterator();
-        double squaredL2 = 0d;
-        while (sparseIterator.hasNext()) {
-            double value = sparseIterator.next().getValue();
-            squaredL2 += value * value;
-        }
-        return squaredL2;
+        final double l2 = vector.getL2();
+        return l2 * l2;
     }
 
     private double getLR1(Vector vector, double lossValue) {
@@ -85,7 +80,7 @@ public class PassiveAggressivePerceptron implements Classifier {
         if (cacheL2) {
             LinkedList<LabeledVector> list = new LinkedList<LabeledVector>();
             for (LabeledVector vector : data) {
-                list.add(new LabeledVector(new VectorCachedWithL2(vector.getInnerVector()), vector.getLabel()));
+                list.add(new LabeledVector(new VectorWithCachedL2(vector.getInnerVector()), vector.getLabel()));
             }
             train(list);
         } else {
@@ -122,14 +117,14 @@ public class PassiveAggressivePerceptron implements Classifier {
         return algorithm;
     }
 
-    private class VectorCachedWithL2 implements Vector {
+    private static class VectorWithCachedL2 implements Vector {
 
         private Vector vector;
 
-        private double cacheValue;
+        private double cachedL2;
         private boolean isCached;
 
-        private VectorCachedWithL2(Vector vector) {
+        private VectorWithCachedL2(Vector vector) {
             this.vector = vector;
         }
 
@@ -161,14 +156,11 @@ public class PassiveAggressivePerceptron implements Classifier {
         @Override
         public double getL2() {
             if (!isCached) {
-                cacheValue = vector.getL2();
+                cachedL2 = vector.getL2();
                 isCached = true;
             }
-            return cacheValue;
+            return cachedL2;
         }
 
-        public Vector getInnerVector() {
-            return vector;
-        }
     }
 }
