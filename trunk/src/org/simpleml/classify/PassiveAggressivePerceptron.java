@@ -6,6 +6,7 @@ import org.simpleml.struct.MutableVector;
 import org.simpleml.struct.Vector;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * See the paper: Koby Crammer at al. 2006. Online Passive-Aggressive Algorithms.
@@ -60,9 +61,9 @@ public class PassiveAggressivePerceptron implements Classifier {
 
     public void train(Iterable<LabeledVector> data) {
         for (int i = 0; i < numIteration; i++) {
-            for (LabeledVector labeledVector : data) {
-                final Vector innerVector = labeledVector.getInnerVector();
-                double lossValue = Math.max(0d, 1 - labeledVector.getLabel() * w.innerProduct(innerVector));
+            for (LabeledVector vector : data) {
+                final Vector innerVector = vector.getInnerVector();
+                double lossValue = Math.max(0d, 1 - vector.getLabel() * w.innerProduct(innerVector));
                 double learningRate = 0d;
                 switch (algorithm) {
                     case PA1:
@@ -75,8 +76,20 @@ public class PassiveAggressivePerceptron implements Classifier {
                         learningRate = getLR3(innerVector, lossValue);
                         break;
                 }
-                w.addToThis(innerVector, learningRate * labeledVector.getLabel());
+                w.addToThis(innerVector, learningRate * vector.getLabel());
             }
+        }
+    }
+
+    public void train(Iterable<LabeledVector> data, boolean cacheL2) {
+        if (cacheL2) {
+            LinkedList<LabeledVector> list = new LinkedList<LabeledVector>();
+            for (LabeledVector vector : data) {
+                list.add(new LabeledVector(new VectorCachedWithL2(vector.getInnerVector()), vector.getLabel()));
+            }
+            train(list);
+        } else {
+            train(data);
         }
     }
 
@@ -107,5 +120,55 @@ public class PassiveAggressivePerceptron implements Classifier {
 
     public AlgorithmType getAlgorithm() {
         return algorithm;
+    }
+
+    private class VectorCachedWithL2 implements Vector {
+
+        private Vector vector;
+
+        private double cacheValue;
+        private boolean isCached;
+
+        private VectorCachedWithL2(Vector vector) {
+            this.vector = vector;
+        }
+
+        @Override
+        public double get(int index) {
+            return vector.get(index);
+        }
+
+        @Override
+        public int getDimension() {
+            return vector.getDimension();
+        }
+
+        @Override
+        public Iterator<Entry> sparseIterator() {
+            return vector.sparseIterator();
+        }
+
+        @Override
+        public int sparseSize() {
+            return vector.sparseSize();
+        }
+
+        @Override
+        public double innerProduct(Vector thatVector) {
+            return vector.innerProduct(thatVector);
+        }
+
+        @Override
+        public double getL2() {
+            if (!isCached) {
+                cacheValue = vector.getL2();
+                isCached = true;
+            }
+            return cacheValue;
+        }
+
+        public Vector getInnerVector() {
+            return vector;
+        }
     }
 }
