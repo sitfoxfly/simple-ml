@@ -7,7 +7,8 @@ import java.util.*;
  */
 public class RandomBunchGenerator<T> implements Iterable<Iterable<T>> {
 
-    public static final int DEFAULT_SEED = 0;
+    private static final int DEFAULT_SEED = 0;
+
     private List<T> instances;
     private int bunchSize;
     private long seed;

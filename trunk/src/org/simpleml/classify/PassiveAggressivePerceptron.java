@@ -1,5 +1,9 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.notify.Notifier;
+import org.simpleml.classify.notify.progress.TrainingProgressEvent;
+import org.simpleml.classify.notify.progress.TrainingProgressListener;
+import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
 import org.simpleml.struct.ArrayVector;
 import org.simpleml.struct.LabeledVector;
 import org.simpleml.struct.MutableVector;
@@ -14,7 +18,7 @@ import java.util.LinkedList;
  * @author rasmikun
  * @author sitfoxfly
  */
-public class PassiveAggressivePerceptron implements Classifier {
+public class PassiveAggressivePerceptron implements Classifier, Trainable, TrainingProgressNotifier {
 
     public static enum AlgorithmType {
         PA1,
@@ -29,6 +33,8 @@ public class PassiveAggressivePerceptron implements Classifier {
     private double aggressiveness = DEFAULT_AGGRESSIVENESS;
     private int numIteration = DEFAULT_NUM_ITERATION;
     private AlgorithmType algorithm = DEFAULT_ALGORITHM;
+
+    private Notifier notifier = new Notifier();
 
     private MutableVector w;
 
@@ -54,9 +60,13 @@ public class PassiveAggressivePerceptron implements Classifier {
         return lossValue / (squaredL2 + 0.5 / aggressiveness);
     }
 
+    @Override
     public void train(Iterable<LabeledVector> data) {
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_TRAINING));
         for (int i = 0; i < numIteration; i++) {
+            notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
             for (LabeledVector vector : data) {
+                notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
                 final Vector innerVector = vector.getInnerVector();
                 double lossValue = Math.max(0d, 1 - vector.getLabel() * w.innerProduct(innerVector));
                 double learningRate = 0d;
@@ -72,8 +82,11 @@ public class PassiveAggressivePerceptron implements Classifier {
                         break;
                 }
                 w.addToThis(innerVector, learningRate * vector.getLabel());
+                notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_INSTANCE_PROCESSING));
             }
+            notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
         }
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
     }
 
     public void train(Iterable<LabeledVector> data, boolean cacheL2) {
@@ -163,4 +176,15 @@ public class PassiveAggressivePerceptron implements Classifier {
         }
 
     }
+
+    @Override
+    public void addTrainingProgressListener(TrainingProgressListener listener) {
+        notifier.addTrainingProgressListener(listener);
+    }
+
+    @Override
+    public void removeTrainingProgressListener(TrainingProgressListener listener) {
+        notifier.removeTrainingProgressListener(listener);
+    }
+
 }

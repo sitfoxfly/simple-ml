@@ -158,11 +158,15 @@ public class SparseTreeVector implements MutableVector {
         while (iterator.hasNext()) {
             final Entry entry = iterator.next();
             final int index = entry.getIndex();
-            double newValue = entry.getValue() * scalar + this.map.get(index);
+            double z = ZERO;
+            if (map.containsKey(index)) {
+                z = map.get(index);
+            }
+            double newValue = entry.getValue() * scalar + z;
             if (Math.abs(newValue) < ZERO_EPSILON) {
-                this.map.remove(index);
+                map.remove(index);
             } else {
-                this.map.put(index, newValue);
+                map.put(index, newValue);
             }
         }
     }

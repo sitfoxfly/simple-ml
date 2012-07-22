@@ -161,11 +161,11 @@ public class SparseHashVector implements MutableVector {
         while (iterator.hasNext()) {
             final Entry entry = iterator.next();
             final int index = entry.getIndex();
-            double newValue = entry.getValue() * scalar + this.map.get(index);
+            double newValue = entry.getValue() * scalar + map.get(index);
             if (Math.abs(newValue) < ZERO_EPSILON) {
-                this.map.remove(index);
+                map.remove(index);
             } else {
-                this.map.put(index, newValue);
+                map.put(index, newValue);
             }
         }
     }

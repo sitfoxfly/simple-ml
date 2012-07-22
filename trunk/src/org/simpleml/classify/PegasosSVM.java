@@ -1,5 +1,9 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.notify.Notifier;
+import org.simpleml.classify.notify.progress.TrainingProgressEvent;
+import org.simpleml.classify.notify.progress.TrainingProgressListener;
+import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
 import org.simpleml.struct.*;
 import org.simpleml.util.VectorUtil;
 
@@ -10,13 +14,17 @@ import java.util.Iterator;
  *
  * @author sitfoxfly
  */
-public class PegasosSVM implements Classifier {
+public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifier {
+
+    private static final int ITERATION_OFFSET = 2; // zero division error occurs when starts with 0 iteration
 
     private static final int DEFAULT_NUM_ITERATIONS = 500;
     private static final double DEFAULT_REGULARIZATION = 1.0E-4;
 
     private int numIterations = DEFAULT_NUM_ITERATIONS;
     private double lambda = DEFAULT_REGULARIZATION;
+
+    private Notifier notifier = new Notifier();
 
     private MutableVector weights;
 
@@ -31,18 +39,70 @@ public class PegasosSVM implements Classifier {
         mu = 0.0;
     }
 
-    public void train(Iterable<? extends Iterable<LabeledVector>> data) {
-        int iteration = 2;
-        while (iteration <= numIterations) {
+    @Override
+    public void train(Iterable<LabeledVector> data) {
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_TRAINING));
+        int localIteration = ITERATION_OFFSET;
+        for (int iteration = 0; iteration < numIterations; iteration++) {
+            notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
+            for (LabeledVector labeledVector : data) {
+                notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
+                MutableVector updateVector = new SparseHashVector(weights.getDimension());
+                BiasedVector biasedVector = new BiasedVector(labeledVector.getInnerVector());
+                if (alpha * labeledVector.getLabel() * weights.innerProduct(biasedVector) < 1.0) {
+                    updateVector.addToThis(biasedVector, labeledVector.getLabel());
+                }
+
+                final double nu = 1.0 / (lambda * localIteration);
+                final double coef1 = 1.0 - 1.0 / localIteration;
+                final double coef2 = coef1 * alpha;
+                double newMu = mu * coef1 * coef1;
+                double diff = 0;
+                final Iterator<Vector.Entry> entryIterator = updateVector.sparseIterator();
+                while (entryIterator.hasNext()) {
+                    final Vector.Entry entry = entryIterator.next();
+                    final int index = entry.getIndex();
+                    final double x = entry.getValue();
+                    final double z = weights.get(index);
+                    diff += x * (2.0 * z * alpha * coef1 + nu * x);
+                }
+                newMu += nu * diff;
+                weights.addToThis(updateVector, nu / (coef2));
+                double alpha12 = alpha * coef1;
+                final double norm = Math.sqrt(lambda * newMu);
+                if (norm < 1.0) {
+                    mu = 1.0 / (newMu * lambda);
+                    alpha = alpha12 / norm;
+                } else {
+                    mu = newMu;
+                    alpha = alpha12;
+                }
+
+                localIteration++;
+                notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_INSTANCE_PROCESSING));
+            }
+            notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
+        }
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
+    }
+
+    public void trainBunch(Iterable<? extends Iterable<LabeledVector>> data) {
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_TRAINING));
+        final int finalIteration = numIterations + ITERATION_OFFSET;
+        int iteration = ITERATION_OFFSET;
+        while (iteration < finalIteration) {
+            notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
             for (Iterable<LabeledVector> instances : data) {
                 int k = 0;
                 SparseHashVector updateVector = new SparseHashVector(weights.getDimension());
                 for (LabeledVector instance : instances) {
+                    notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
                     BiasedVector biasedInstance = new BiasedVector(instance);
                     if (alpha * instance.getLabel() * weights.innerProduct(biasedInstance) < 1.0) {
                         updateVector.addToThis(biasedInstance, instance.getLabel());
                     }
                     k++;
+                    notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_INSTANCE_PROCESSING));
                 }
 
                 final double nu = 1.0 / (lambda * iteration);
@@ -71,11 +131,13 @@ public class PegasosSVM implements Classifier {
                 }
 
                 iteration++;
-                if (iteration > numIterations + 1) {
+                notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
+                if (iteration >= finalIteration) {
                     break;
                 }
             }
         }
+        notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
     }
 
     @Override
@@ -107,6 +169,16 @@ public class PegasosSVM implements Classifier {
         return VectorUtil.immutableVector(weights);
     }
 
+    @Override
+    public void addTrainingProgressListener(TrainingProgressListener listener) {
+        notifier.addTrainingProgressListener(listener);
+    }
+
+    @Override
+    public void removeTrainingProgressListener(TrainingProgressListener listener) {
+        notifier.removeTrainingProgressListener(listener);
+    }
+
     /**
      * adds bias feature, what allow to learn bias term
      */
@@ -122,7 +194,7 @@ public class PegasosSVM implements Classifier {
 
         @Override
         public double get(int index) {
-            if (index == dimension - 1) {
+            if (index == 0) {
                 return 1.0;
             }
             return vector.get(index);
@@ -135,7 +207,55 @@ public class PegasosSVM implements Classifier {
 
         @Override
         public Iterator<Entry> sparseIterator() {
-            return vector.sparseIterator();
+            return new Iterator<Entry>() {
+
+                private Iterator<Entry> innerIterator = vector.sparseIterator();
+                private boolean iterateBiasTerm = true;
+
+                @Override
+                public boolean hasNext() {
+                    return innerIterator.hasNext() || iterateBiasTerm;
+                }
+
+                @Override
+                public Entry next() {
+                    if (iterateBiasTerm) {
+                        iterateBiasTerm = false;
+                        return new Entry() {
+                            @Override
+                            public int getIndex() {
+                                return dimension - 1;
+                            }
+
+                            @Override
+                            public double getValue() {
+                                return 1.0;
+                            }
+                        };
+                    } else if (innerIterator.hasNext()) {
+                        return new Entry() {
+
+                            private final Entry innerEntry = innerIterator.next();
+
+                            @Override
+                            public int getIndex() {
+                                return innerEntry.getIndex() + 1;
+                            }
+
+                            @Override
+                            public double getValue() {
+                                return innerEntry.getValue();
+                            }
+                        };
+                    }
+                    throw new IllegalStateException();
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
 
         @Override
