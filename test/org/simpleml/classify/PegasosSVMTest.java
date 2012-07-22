@@ -2,7 +2,6 @@ package org.simpleml.classify;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.simpleml.gen.EachInstanceGenerator;
 import org.simpleml.struct.LabeledVector;
 
 import java.util.List;
@@ -17,7 +16,7 @@ public class PegasosSVMTest {
         PegasosSVM pegasosSVM = new PegasosSVM(3);
         List<LabeledVector> trainingData = TestUtil.getSimpleTrainingData();
 
-        pegasosSVM.train(new EachInstanceGenerator<LabeledVector>(trainingData));
+        pegasosSVM.train(trainingData);
 
         for (LabeledVector vector : trainingData) {
             int predictedLabel = pegasosSVM.classify(vector.getInnerVector());

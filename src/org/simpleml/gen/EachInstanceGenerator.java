@@ -3,7 +3,6 @@ package org.simpleml.gen;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * @author sitfoxfly
@@ -32,10 +31,46 @@ public class EachInstanceGenerator<T> implements Iterable<Iterable<T>> {
                         return emptyIterable;
                     }
                 }
-                final LinkedList<T> list = new LinkedList<T>();
-                list.add(iterator.next());
-                return list;
+                return new SingleElement<T>(iterator.next());
             }
         };
     }
+
+    private static class SingleElement<T> implements Iterable<T> {
+
+        private T element;
+
+        public SingleElement(T element) {
+            this.element = element;
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return new Iterator<T>() {
+
+                private boolean hasNext = true;
+
+                @Override
+                public boolean hasNext() {
+                    return hasNext;
+                }
+
+                @Override
+                public T next() {
+                    if (!hasNext) {
+                        throw new IllegalStateException();
+                    }
+                    hasNext = false;
+                    return element;
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
+    }
+
 }
