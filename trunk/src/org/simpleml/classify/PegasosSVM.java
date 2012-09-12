@@ -64,14 +64,14 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
                     final int index = entry.getIndex();
                     final double x = entry.getValue();
                     final double z = weights.get(index);
-                    diff += x * (2.0 * z * alpha * coef1 + nu * x);
+                    diff += x * (2.0 * z * coef2 + nu * x);
                 }
                 newMu += nu * diff;
-                weights.addToThis(updateVector, nu / (coef2));
-                double alpha12 = alpha * coef1;
+                weights.addToThis(updateVector, nu / coef2);
+                double alpha12 = coef2;
                 final double norm = Math.sqrt(lambda * newMu);
-                if (norm < 1.0) {
-                    mu = 1.0 / (newMu * lambda);
+                if (norm > 1.0) {
+                    mu = 1.0 / lambda;
                     alpha = alpha12 / norm;
                 } else {
                     mu = newMu;
@@ -83,6 +83,8 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
             }
             notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
         }
+        weights.scaleBy(alpha);
+        alpha = 1.0;
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
     }
 
@@ -116,14 +118,14 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
                     final int index = entry.getIndex();
                     final double x = entry.getValue();
                     final double z = weights.get(index);
-                    diff += x * (2.0 * z * alpha * coef1 + nu * x / k);
+                    diff += x * (2.0 * z * coef2 + nu * x / k);
                 }
                 newMu += nu * diff / k;
                 weights.addToThis(updateVector, nu / (coef2 * k));
-                double alpha12 = alpha * coef1;
+                double alpha12 = coef2;
                 final double norm = Math.sqrt(lambda * newMu);
-                if (norm < 1.0) {
-                    mu = 1.0 / (newMu * lambda);
+                if (norm > 1.0) {
+                    mu = 1.0 / lambda;
                     alpha = alpha12 / norm;
                 } else {
                     mu = newMu;
@@ -137,6 +139,8 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
                 }
             }
         }
+        weights.scaleBy(alpha);
+        alpha = 1.0;
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
     }
 

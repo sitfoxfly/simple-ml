@@ -18,6 +18,19 @@ public class SparseHashVector implements MutableVector {
     private TIntDoubleMap map;
     private int dimension;
 
+    public SparseHashVector(Vector v) {
+        map = new TIntDoubleHashMap();
+        dimension = v.getDimension();
+        final Iterator<Entry> sparseIterator = v.sparseIterator();
+        while (sparseIterator.hasNext()) {
+            final Entry entry = sparseIterator.next();
+            if (Math.abs(entry.getValue()) < ZERO_EPSILON) {
+                continue;
+            }
+            map.put(entry.getIndex(), entry.getValue());
+        }
+    }
+
     public SparseHashVector(int dimension) {
         map = new TIntDoubleHashMap();
         this.dimension = dimension;
@@ -96,6 +109,9 @@ public class SparseHashVector implements MutableVector {
     @Override
     public void set(int index, double value) {
         checkIndex(index);
+        if (Math.abs(value) < ZERO_EPSILON) {
+            return;
+        }
         map.put(index, value);
     }
 
