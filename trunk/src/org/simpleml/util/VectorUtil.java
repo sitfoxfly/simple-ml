@@ -1,16 +1,72 @@
 package org.simpleml.util;
 
+import org.simpleml.IndexedValue;
+import org.simpleml.classify.ext.LoadException;
 import org.simpleml.struct.Vector;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author sitfoxfly
  */
 public class VectorUtil {
 
-    private VectorUtil() {
-        throw new AssertionError("This is a static class!");
+    public static void save(Vector vector, DataOutput dataOut) throws IOException {
+        dataOut.writeInt(vector.getDimension());
+        dataOut.writeInt(vector.sparseSize());
+        final Iterator<Vector.Entry> sparseIterator = vector.sparseIterator();
+        while (sparseIterator.hasNext()) {
+            final Vector.Entry entry = sparseIterator.next();
+            dataOut.writeInt(entry.getIndex());
+            dataOut.writeDouble(entry.getValue());
+        }
+    }
+
+    public static Vector load(Class<? extends Vector> clazz, DataInput dataIn) throws IOException, LoadException {
+        final int dimension = dataIn.readInt();
+        final int sparseSize = dataIn.readInt();
+        List<IndexedValue> values = new ArrayList<IndexedValue>(sparseSize);
+        for (int i = 0; i < sparseSize; i++) {
+            final int index = dataIn.readInt();
+            final double value = dataIn.readDouble();
+            values.add(new IndexedValue(index, value));
+        }
+        Vector vector;
+        try {
+            final Constructor<? extends Vector> constructor = clazz.getConstructor(Collection.class, int.class);
+            vector = constructor.newInstance(values, dimension);
+        } catch (InvocationTargetException e) {
+            throw new LoadException(e);
+        } catch (NoSuchMethodException e) {
+            throw new LoadException(e);
+        } catch (InstantiationException e) {
+            throw new LoadException(e);
+        } catch (IllegalAccessException e) {
+            throw new LoadException(e);
+        }
+
+        return vector;
+    }
+
+    public static boolean equals(Vector v1, Vector v2) {
+        if (v1.getDimension() != v2.getDimension()) {
+            return false;
+        }
+        final int n = v1.getDimension();
+        for (int i = 0; i < n; i++) {
+            if (v1.get(i) != v2.get(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Vector immutableVector(Vector vector) {
@@ -97,4 +153,9 @@ public class VectorUtil {
         sb.append("]");
         return sb.toString();
     }
+
+    private VectorUtil() {
+        throw new AssertionError("This is a static class!");
+    }
+
 }

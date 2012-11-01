@@ -1,19 +1,29 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.ext.ExternalizableModel;
+import org.simpleml.classify.ext.LoadException;
 import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.ArrayVector;
-import org.simpleml.struct.LabeledVector;
-import org.simpleml.struct.MutableVector;
-import org.simpleml.struct.Vector;
+import org.simpleml.struct.*;
 import org.simpleml.util.VectorUtil;
+
+import java.io.*;
 
 /**
  * @author rasmikun
  */
-public class LinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier {
+public class LinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+
+    public static LinearPerceptron load(InputStream in) throws IOException, LoadException {
+        DataInputStream dataIn = new DataInputStream(in);
+        LinearPerceptron instance = new LinearPerceptron();
+        instance.w = (MutableVector) VectorUtil.load(ArrayVector.class, dataIn);
+        instance.numIteration = dataIn.readInt();
+        instance.learningRate = dataIn.readDouble();
+        return instance;
+    }
 
     private static final double DEFAULT_LEARNING_RATE = 1.0;
     private static final int DEFAULT_NUM_ITERATION = 100;
@@ -24,6 +34,9 @@ public class LinearPerceptron implements Classifier, Trainable, TrainingProgress
     private Notifier notifier = new Notifier();
 
     private MutableVector w;
+
+    private LinearPerceptron() {
+    }
 
     public LinearPerceptron(int dimension) {
         this.w = new ArrayVector(dimension);
@@ -44,6 +57,8 @@ public class LinearPerceptron implements Classifier, Trainable, TrainingProgress
             notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
         }
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
+
+        w = new SparseHashVector(this.w);
     }
 
     @Override
@@ -79,6 +94,15 @@ public class LinearPerceptron implements Classifier, Trainable, TrainingProgress
     @Override
     public void removeTrainingProgressListener(TrainingProgressListener listener) {
         notifier.removeTrainingProgressListener(listener);
+    }
+
+    @Override
+    public void save(OutputStream out) throws IOException {
+        DataOutputStream dataOut = new DataOutputStream(out);
+        VectorUtil.save(w, dataOut);
+        dataOut.writeInt(numIteration);
+        dataOut.writeDouble(learningRate);
+        dataOut.flush();
     }
 
 }

@@ -1,19 +1,29 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.ext.ExternalizableModel;
+import org.simpleml.classify.ext.LoadException;
 import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.ArrayVector;
-import org.simpleml.struct.LabeledVector;
-import org.simpleml.struct.MutableVector;
-import org.simpleml.struct.Vector;
+import org.simpleml.struct.*;
 import org.simpleml.util.VectorUtil;
+
+import java.io.*;
 
 /**
  * @author sitfoxfly
  */
-public class AveragedLinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier {
+public class AveragedLinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+
+    public static AveragedLinearPerceptron load(InputStream in) throws IOException, LoadException {
+        DataInputStream dataIn = new DataInputStream(in);
+        AveragedLinearPerceptron instance = new AveragedLinearPerceptron();
+        instance.w = (MutableVector) VectorUtil.load(ArrayVector.class, dataIn);
+        instance.numIteration = dataIn.readInt();
+        instance.learningRate = dataIn.readDouble();
+        return instance;
+    }
 
     private static final double DEFAULT_LEARNING_RATE = 1.0;
     private static final int DEFAULT_NUM_ITERATION = 100;
@@ -24,6 +34,9 @@ public class AveragedLinearPerceptron implements Classifier, Trainable, Training
     private Notifier notifier = new Notifier();
 
     private MutableVector w;
+
+    private AveragedLinearPerceptron() {
+    }
 
     public AveragedLinearPerceptron(int dimension) {
         this.w = new ArrayVector(dimension);
@@ -49,6 +62,7 @@ public class AveragedLinearPerceptron implements Classifier, Trainable, Training
         }
         w.scaleBy(1.0 / numSummed);
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
+        w = new SparseHashVector(w);
     }
 
     @Override
@@ -84,6 +98,15 @@ public class AveragedLinearPerceptron implements Classifier, Trainable, Training
     @Override
     public void removeTrainingProgressListener(TrainingProgressListener listener) {
         notifier.removeTrainingProgressListener(listener);
+    }
+
+    @Override
+    public void save(OutputStream out) throws IOException {
+        DataOutputStream dataOut = new DataOutputStream(out);
+        VectorUtil.save(w, dataOut);
+        dataOut.writeInt(numIteration);
+        dataOut.writeDouble(learningRate);
+        dataOut.flush();
     }
 
 }

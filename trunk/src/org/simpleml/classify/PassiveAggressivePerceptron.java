@@ -1,5 +1,7 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.ext.ExternalizableModel;
+import org.simpleml.classify.ext.LoadException;
 import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
@@ -8,7 +10,9 @@ import org.simpleml.struct.ArrayVector;
 import org.simpleml.struct.LabeledVector;
 import org.simpleml.struct.MutableVector;
 import org.simpleml.struct.Vector;
+import org.simpleml.util.VectorUtil;
 
+import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -18,7 +22,17 @@ import java.util.LinkedList;
  * @author rasmikun
  * @author sitfoxfly
  */
-public class PassiveAggressivePerceptron implements Classifier, Trainable, TrainingProgressNotifier {
+public class PassiveAggressivePerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+
+    public static PassiveAggressivePerceptron load(InputStream in) throws IOException, LoadException {
+        DataInputStream dataIn = new DataInputStream(in);
+        PassiveAggressivePerceptron instance = new PassiveAggressivePerceptron();
+        instance.w = (MutableVector) VectorUtil.load(ArrayVector.class, dataIn);
+        instance.numIteration = dataIn.readInt();
+        instance.aggressiveness = dataIn.readDouble();
+        instance.algorithm = AlgorithmType.valueOf(dataIn.readUTF());
+        return instance;
+    }
 
     public static enum AlgorithmType {
         PA1,
@@ -37,6 +51,9 @@ public class PassiveAggressivePerceptron implements Classifier, Trainable, Train
     private Notifier notifier = new Notifier();
 
     private MutableVector w;
+
+    private PassiveAggressivePerceptron() {
+    }
 
     public PassiveAggressivePerceptron(int dimension) {
         w = new ArrayVector(dimension);
@@ -128,6 +145,20 @@ public class PassiveAggressivePerceptron implements Classifier, Trainable, Train
 
     public AlgorithmType getAlgorithm() {
         return algorithm;
+    }
+
+    public Vector getWeights() {
+        return VectorUtil.immutableVector(w);
+    }
+
+    @Override
+    public void save(OutputStream out) throws IOException {
+        DataOutputStream dataOut = new DataOutputStream(out);
+        VectorUtil.save(w, dataOut);
+        dataOut.writeInt(numIteration);
+        dataOut.writeDouble(aggressiveness);
+        dataOut.writeUTF(algorithm.toString());
+        dataOut.flush();
     }
 
     private static class VectorWithCachedL2 implements Vector {

@@ -1,5 +1,7 @@
 package org.simpleml.classify;
 
+import org.simpleml.classify.ext.ExternalizableModel;
+import org.simpleml.classify.ext.LoadException;
 import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
@@ -7,6 +9,7 @@ import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
 import org.simpleml.struct.*;
 import org.simpleml.util.VectorUtil;
 
+import java.io.*;
 import java.util.Iterator;
 
 /**
@@ -14,7 +17,18 @@ import java.util.Iterator;
  *
  * @author sitfoxfly
  */
-public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifier {
+public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+
+    public static PegasosSVM load(InputStream in) throws IOException, LoadException {
+        DataInputStream dataIn = new DataInputStream(in);
+        PegasosSVM instance = new PegasosSVM();
+        instance.weights = (MutableVector) VectorUtil.load(ArrayVector.class, dataIn);
+        instance.dimension = dataIn.readInt();
+        instance.lambda = dataIn.readDouble();
+        instance.alpha = dataIn.readDouble();
+        instance.mu = dataIn.readDouble();
+        return instance;
+    }
 
     private static final int ITERATION_OFFSET = 2; // zero division error occurs when starts with 0 iteration
 
@@ -31,6 +45,9 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
     private int dimension;
     private double alpha;
     private double mu;
+
+    private PegasosSVM() {
+    }
 
     public PegasosSVM(int dimension) {
         this.dimension = dimension;
@@ -183,6 +200,17 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
         notifier.removeTrainingProgressListener(listener);
     }
 
+    @Override
+    public void save(OutputStream out) throws IOException {
+        DataOutputStream dataOut = new DataOutputStream(out);
+        VectorUtil.save(weights, dataOut);
+        dataOut.writeInt(dimension);
+        dataOut.writeDouble(lambda);
+        dataOut.writeDouble(alpha);
+        dataOut.writeDouble(mu);
+        dataOut.flush();
+    }
+
     /**
      * adds bias feature, what allow to learn bias term
      */
@@ -278,4 +306,5 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
         }
 
     }
+
 }
