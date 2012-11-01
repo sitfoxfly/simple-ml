@@ -11,6 +11,8 @@ import java.util.List;
  */
 public class TestUtil {
 
+    public static final int DATA_SIZE = 3;
+
     private TestUtil() {
         throw new AssertionError("This is a 'static' class.");
     }

@@ -1,6 +1,9 @@
 package org.simpleml.struct;
 
+import org.simpleml.IndexedValue;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -19,6 +22,13 @@ public class ArrayVector implements MutableVector {
         this.data = Arrays.copyOf(data, data.length);
         for (int i = 0; i < this.data.length; i++) {
             this.data[i] = reduceToZero(this.data[i]);
+        }
+    }
+
+    public ArrayVector(Collection<IndexedValue> values, int dimension) {
+        this.data = new double[dimension];
+        for (IndexedValue value : values) {
+            this.data[value.index] = reduceToZero(value.value);
         }
     }
 
