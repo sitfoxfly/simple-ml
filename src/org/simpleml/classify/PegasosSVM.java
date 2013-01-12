@@ -17,7 +17,7 @@ import java.util.Iterator;
  *
  * @author sitfoxfly
  */
-public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
     public static PegasosSVM load(InputStream in) throws IOException, LoadException {
         DataInputStream dataIn = new DataInputStream(in);
@@ -35,10 +35,10 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
     private static final int DEFAULT_NUM_ITERATIONS = 500;
     private static final double DEFAULT_REGULARIZATION = 1.0E-4;
 
-    private int numIterations = DEFAULT_NUM_ITERATIONS;
+    private int numIteration = DEFAULT_NUM_ITERATIONS;
     private double lambda = DEFAULT_REGULARIZATION;
 
-    private Notifier notifier = new Notifier();
+    private final Notifier notifier = new Notifier();
 
     private MutableVector weights;
 
@@ -60,7 +60,7 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
     public void train(Iterable<LabeledVector> data) {
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_TRAINING));
         int localIteration = ITERATION_OFFSET;
-        for (int iteration = 0; iteration < numIterations; iteration++) {
+        for (int iteration = 0; iteration < numIteration; iteration++) {
             notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
             for (LabeledVector labeledVector : data) {
                 notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
@@ -85,14 +85,13 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
                 }
                 newMu += nu * diff;
                 weights.addToThis(updateVector, nu / coef2);
-                double alpha12 = coef2;
                 final double norm = Math.sqrt(lambda * newMu);
                 if (norm > 1.0) {
                     mu = 1.0 / lambda;
-                    alpha = alpha12 / norm;
+                    alpha = coef2 / norm;
                 } else {
                     mu = newMu;
-                    alpha = alpha12;
+                    alpha = coef2;
                 }
 
                 localIteration++;
@@ -107,7 +106,7 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
 
     public void trainBunch(Iterable<? extends Iterable<LabeledVector>> data) {
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_TRAINING));
-        final int finalIteration = numIterations + ITERATION_OFFSET;
+        final int finalIteration = numIteration + ITERATION_OFFSET;
         int iteration = ITERATION_OFFSET;
         while (iteration < finalIteration) {
             notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
@@ -139,14 +138,13 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
                 }
                 newMu += nu * diff / k;
                 weights.addToThis(updateVector, nu / (coef2 * k));
-                double alpha12 = coef2;
                 final double norm = Math.sqrt(lambda * newMu);
                 if (norm > 1.0) {
                     mu = 1.0 / lambda;
-                    alpha = alpha12 / norm;
+                    alpha = coef2 / norm;
                 } else {
                     mu = newMu;
-                    alpha = alpha12;
+                    alpha = coef2;
                 }
 
                 iteration++;
@@ -166,12 +164,17 @@ public class PegasosSVM implements Classifier, Trainable, TrainingProgressNotifi
         return (int) Math.signum(weights.innerProduct(new BiasedVector(vector)));
     }
 
-    public int getNumIterations() {
-        return numIterations;
+    @Override
+    public double classifyWithConfidence(Vector vector) {
+        return weights.innerProduct(new BiasedVector(vector));
     }
 
-    public void setNumIterations(int numIterations) {
-        this.numIterations = numIterations;
+    public int getNumIteration() {
+        return numIteration;
+    }
+
+    public void setNumIteration(int numIteration) {
+        this.numIteration = numIteration;
     }
 
     public double getLambda() {

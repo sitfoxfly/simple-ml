@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class Notifier implements TrainingProgressNotifier {
 
-    private List<TrainingProgressListener> trainingProgressListeners = new LinkedList<TrainingProgressListener>();
+    private final List<TrainingProgressListener> trainingProgressListeners = new LinkedList<TrainingProgressListener>();
 
     @Override
     public void addTrainingProgressListener(TrainingProgressListener listener) {

@@ -22,7 +22,7 @@ import java.util.LinkedList;
  * @author rasmikun
  * @author sitfoxfly
  */
-public class PassiveAggressivePerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+public class PassiveAggressivePerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
     public static PassiveAggressivePerceptron load(InputStream in) throws IOException, LoadException {
         DataInputStream dataIn = new DataInputStream(in);
@@ -48,7 +48,7 @@ public class PassiveAggressivePerceptron implements Classifier, Trainable, Train
     private int numIteration = DEFAULT_NUM_ITERATION;
     private AlgorithmType algorithm = DEFAULT_ALGORITHM;
 
-    private Notifier notifier = new Notifier();
+    private final Notifier notifier = new Notifier();
 
     private MutableVector w;
 
@@ -121,6 +121,11 @@ public class PassiveAggressivePerceptron implements Classifier, Trainable, Train
     @Override
     public int classify(Vector vector) {
         return (int) Math.signum(w.innerProduct(vector));
+    }
+
+    @Override
+    public double classifyWithConfidence(Vector vector) {
+        return w.innerProduct(vector);
     }
 
     public double getAggressiveness() {
