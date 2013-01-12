@@ -14,7 +14,7 @@ import java.io.*;
 /**
  * @author rasmikun
  */
-public class LinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+public class LinearPerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
     public static LinearPerceptron load(InputStream in) throws IOException, LoadException {
         DataInputStream dataIn = new DataInputStream(in);
@@ -31,7 +31,7 @@ public class LinearPerceptron implements Classifier, Trainable, TrainingProgress
     private double learningRate = DEFAULT_LEARNING_RATE;
     private int numIteration = DEFAULT_NUM_ITERATION;
 
-    private Notifier notifier = new Notifier();
+    private final Notifier notifier = new Notifier();
 
     private MutableVector w;
 
@@ -64,6 +64,11 @@ public class LinearPerceptron implements Classifier, Trainable, TrainingProgress
     @Override
     public int classify(Vector vector) {
         return (int) Math.signum(w.innerProduct(vector));
+    }
+
+    @Override
+    public double classifyWithConfidence(Vector vector) {
+        return w.innerProduct(vector);
     }
 
     public int getNumIteration() {

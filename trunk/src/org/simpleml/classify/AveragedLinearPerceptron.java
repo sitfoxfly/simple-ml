@@ -14,7 +14,7 @@ import java.io.*;
 /**
  * @author sitfoxfly
  */
-public class AveragedLinearPerceptron implements Classifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
+public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
     public static AveragedLinearPerceptron load(InputStream in) throws IOException, LoadException {
         DataInputStream dataIn = new DataInputStream(in);
@@ -31,7 +31,7 @@ public class AveragedLinearPerceptron implements Classifier, Trainable, Training
     private double learningRate = DEFAULT_LEARNING_RATE;
     private int numIteration = DEFAULT_NUM_ITERATION;
 
-    private Notifier notifier = new Notifier();
+    private final Notifier notifier = new Notifier();
 
     private MutableVector w;
 
@@ -68,6 +68,11 @@ public class AveragedLinearPerceptron implements Classifier, Trainable, Training
     @Override
     public int classify(Vector vector) {
         return (int) Math.signum(w.innerProduct(vector));
+    }
+
+    @Override
+    public double classifyWithConfidence(Vector vector) {
+        return w.innerProduct(vector);
     }
 
     public int getNumIteration() {
