@@ -19,14 +19,13 @@ public class SparseHashVectorTest {
   private MutableVector sparseVector;
 
   {
-    Map<Integer, Double> map = new HashMap<>();
+    final Map<Integer, Double> map = new HashMap<>();
     map.put(0, 1d);
     map.put(1, 1d);
     map.put(2, 1d);
     map.put(5, 1d);
     sparseVector = new SparseHashVector(map, 6);
   }
-
 
   @Test
   public void testSetSparseVectorTest() throws Exception {
@@ -38,13 +37,13 @@ public class SparseHashVectorTest {
 
   @Test
   public void testSetIteratorSparseVectorText() throws Exception {
-    ArrayList<IndexedValue> arrayList = new ArrayList<>();
+    final ArrayList<IndexedValue> arrayList = new ArrayList<>();
     arrayList.add(new IndexedValue(0, 1d));
     arrayList.add(new IndexedValue(1, 1d));
     arrayList.add(new IndexedValue(2, 1d));
     arrayList.add(new IndexedValue(5, 1d));
 
-    Vector otherSparseVector = new SparseHashVector(arrayList.iterator(), 6);
+    final Vector otherSparseVector = new SparseHashVector(arrayList.iterator(), 6);
 
     Assert.assertEquals(otherSparseVector.getDimension(), arrayVector.getDimension());
     for (int i = 0; i < arrayVector.getDimension(); i++) {
@@ -70,13 +69,13 @@ public class SparseHashVectorTest {
 
   @Test
   public void testGetL2() throws Exception {
-    Vector v = new SparseHashVector(new double[]{0, 0, 0});
+    final Vector v = new SparseHashVector(new double[]{0, 0, 0});
     Assert.assertEquals(0d, v.getL2(), TestUtils.DELTA);
 
-    Vector v2 = new SparseHashVector(new double[]{0, 0, 2});
+    final Vector v2 = new SparseHashVector(new double[]{0, 0, 2});
     Assert.assertEquals(2d, v2.getL2(), TestUtils.DELTA);
 
-    Vector v3 = new SparseHashVector(new double[]{4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 4, 4});
+    final Vector v3 = new SparseHashVector(new double[]{4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 2, 4, 4});
     Assert.assertEquals(8d, v3.getL2(), TestUtils.DELTA);
   }
 

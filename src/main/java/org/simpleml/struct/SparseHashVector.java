@@ -125,7 +125,7 @@ public class SparseHashVector implements MutableVector {
     checkDimensions(thatVector.getDimension());
     double result = ZERO;
     if (sparseSize() <= thatVector.sparseSize()) {
-      TIntDoubleIterator iterator = map.iterator();
+      final TIntDoubleIterator iterator = map.iterator();
       while (iterator.hasNext()) {
         iterator.advance();
         result += iterator.value() * thatVector.get(iterator.key());

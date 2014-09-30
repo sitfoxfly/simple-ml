@@ -6,7 +6,9 @@ import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.*;
+import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.Vector;
 import org.simpleml.utils.VectorUtils;
 
 import java.io.*;
@@ -17,9 +19,9 @@ import java.io.*;
 public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
   public static AveragedLinearPerceptron load(InputStream in) throws IOException, LoadException {
-    DataInputStream dataIn = new DataInputStream(in);
-    AveragedLinearPerceptron instance = new AveragedLinearPerceptron();
-    instance.w = (MutableVector) VectorUtils.load(ArrayVector.class, dataIn);
+    final DataInputStream dataIn = new DataInputStream(in);
+    final AveragedLinearPerceptron instance = new AveragedLinearPerceptron();
+    instance.w = (MutableVector) VectorUtils.loadDefaultVector(dataIn);
     instance.numIteration = dataIn.readInt();
     instance.learningRate = dataIn.readDouble();
     return instance;
@@ -39,7 +41,7 @@ public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trai
   }
 
   public AveragedLinearPerceptron(int dimension) {
-    this.w = new ArrayVector(dimension);
+    this.w = VectorUtils.newMutableVector(dimension);
   }
 
   @Override
@@ -48,7 +50,7 @@ public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trai
     int numSummed = 0;
     for (int iteration = 0; iteration < numIteration; iteration++) {
       notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
-      ArrayVector localWeights = new ArrayVector(w.getDimension());
+      final MutableVector localWeights = VectorUtils.newDenseVector(w.getDimension());
       for (LabeledVector labeledVector : data) {
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
         if (localWeights.innerProduct(labeledVector.getInnerVector()) * labeledVector.getLabel() <= 0) {
@@ -62,7 +64,6 @@ public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trai
     }
     w.scaleBy(1.0 / numSummed);
     notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
-    w = new SparseHashVector(w);
   }
 
   @Override
@@ -107,7 +108,7 @@ public class AveragedLinearPerceptron implements ConfidentBinaryClassifier, Trai
 
   @Override
   public void save(OutputStream out) throws IOException {
-    DataOutputStream dataOut = new DataOutputStream(out);
+    final DataOutputStream dataOut = new DataOutputStream(out);
     VectorUtils.save(w, dataOut);
     dataOut.writeInt(numIteration);
     dataOut.writeDouble(learningRate);

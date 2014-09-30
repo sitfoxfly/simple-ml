@@ -13,8 +13,8 @@ public class PegasosSVMTest {
 
   @Test
   public void testClassifier() throws Exception {
-    PegasosSVM pegasosSVM = new PegasosSVM(DataUtils.DATA_SIZE);
-    List<LabeledVector> trainingData = DataUtils.getSimpleTrainingData();
+    final PegasosSVM pegasosSVM = new PegasosSVM(DataUtils.DATA_SIZE);
+    final List<LabeledVector> trainingData = DataUtils.getSimpleTrainingData();
 
     pegasosSVM.train(trainingData);
 

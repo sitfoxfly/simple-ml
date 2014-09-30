@@ -6,7 +6,9 @@ import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.*;
+import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.Vector;
 import org.simpleml.utils.VectorUtils;
 
 import java.io.*;
@@ -17,9 +19,9 @@ import java.io.*;
 public class LinearPerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
   public static LinearPerceptron load(InputStream in) throws IOException, LoadException {
-    DataInputStream dataIn = new DataInputStream(in);
-    LinearPerceptron instance = new LinearPerceptron();
-    instance.w = (MutableVector) VectorUtils.load(ArrayVector.class, dataIn);
+    final DataInputStream dataIn = new DataInputStream(in);
+    final LinearPerceptron instance = new LinearPerceptron();
+    instance.w = (MutableVector) VectorUtils.loadDefaultVector(dataIn);
     instance.numIteration = dataIn.readInt();
     instance.learningRate = dataIn.readDouble();
     return instance;
@@ -39,7 +41,7 @@ public class LinearPerceptron implements ConfidentBinaryClassifier, Trainable, T
   }
 
   public LinearPerceptron(int dimension) {
-    this.w = new ArrayVector(dimension);
+    this.w = VectorUtils.newMutableVector(dimension);
   }
 
   @Override
@@ -57,8 +59,6 @@ public class LinearPerceptron implements ConfidentBinaryClassifier, Trainable, T
       notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_ITERATION));
     }
     notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.FINISH_TRAINING));
-
-    w = new SparseHashVector(this.w);
   }
 
   @Override
@@ -103,7 +103,7 @@ public class LinearPerceptron implements ConfidentBinaryClassifier, Trainable, T
 
   @Override
   public void save(OutputStream out) throws IOException {
-    DataOutputStream dataOut = new DataOutputStream(out);
+    final DataOutputStream dataOut = new DataOutputStream(out);
     VectorUtils.save(w, dataOut);
     dataOut.writeInt(numIteration);
     dataOut.writeDouble(learningRate);

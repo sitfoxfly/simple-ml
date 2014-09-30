@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 /**
  * @author sitfoxfly
  */
-public class ExtUtil {
+public class ExtUtils {
 
   private static final String LOAD_METHOD_NAME = "load";
 
@@ -21,8 +21,8 @@ public class ExtUtil {
   }
 
   public static <T extends ExternalizableModel> T load(Class<T> clazz, File inFile) throws IOException, LoadException {
-    FileInputStream in = new FileInputStream(inFile);
-    T instance = load(clazz, in);
+    final FileInputStream in = new FileInputStream(inFile);
+    final T instance = load(clazz, in);
     in.close();
     return instance;
   }
@@ -32,22 +32,22 @@ public class ExtUtil {
   }
 
   public static void save(ExternalizableModel model, File outFile) throws IOException {
-    FileOutputStream out = new FileOutputStream(outFile);
+    final FileOutputStream out = new FileOutputStream(outFile);
     save(model, out);
     out.close();
   }
 
   public static <T extends ExternalizableModel> T trySaveAndLoad(T model) throws IOException, LoadException {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
     save(model, out);
     out.close();
-    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+    final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
     @SuppressWarnings("unchecked")
-    T instance = (T) load(model.getClass(), in);
+    final T instance = (T) load(model.getClass(), in);
     return instance;
   }
 
-  private ExtUtil() {
+  private ExtUtils() {
     throw new AssertionError();
   }
 

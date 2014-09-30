@@ -6,7 +6,9 @@ import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.*;
+import org.simpleml.struct.LabeledVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.Vector;
 import org.simpleml.utils.VectorUtils;
 
 import java.io.*;
@@ -20,9 +22,9 @@ import java.util.Iterator;
 public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
   public static PegasosSVM load(InputStream in) throws IOException, LoadException {
-    DataInputStream dataIn = new DataInputStream(in);
-    PegasosSVM instance = new PegasosSVM();
-    instance.weights = (MutableVector) VectorUtils.load(ArrayVector.class, dataIn);
+    final DataInputStream dataIn = new DataInputStream(in);
+    final PegasosSVM instance = new PegasosSVM();
+    instance.weights = (MutableVector) VectorUtils.loadDefaultVector(dataIn);
     instance.dimension = dataIn.readInt();
     instance.lambda = dataIn.readDouble();
     instance.alpha = dataIn.readDouble();
@@ -51,7 +53,7 @@ public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, Trainin
 
   public PegasosSVM(int dimension) {
     this.dimension = dimension;
-    weights = new ArrayVector(new double[dimension + 1]);
+    weights = VectorUtils.newMutableVector(new double[dimension + 1]);
     alpha = 1.0;
     mu = 0.0;
   }
@@ -64,8 +66,8 @@ public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, Trainin
       notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
       for (LabeledVector labeledVector : data) {
         notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
-        MutableVector updateVector = new SparseHashVector(weights.getDimension());
-        BiasedVector biasedVector = new BiasedVector(labeledVector.getInnerVector());
+        final MutableVector updateVector = VectorUtils.newSparseVector(weights.getDimension());
+        final BiasedVector biasedVector = new BiasedVector(labeledVector.getInnerVector());
         if (alpha * labeledVector.getLabel() * weights.innerProduct(biasedVector) < 1.0) {
           updateVector.addToThis(biasedVector, labeledVector.getLabel());
         }
@@ -112,7 +114,7 @@ public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, Trainin
       notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_ITERATION));
       for (Iterable<LabeledVector> instances : data) {
         int k = 0;
-        SparseHashVector updateVector = new SparseHashVector(weights.getDimension());
+        final MutableVector updateVector = VectorUtils.newSparseVector(weights.getDimension());
         for (LabeledVector instance : instances) {
           notifier.notifyTrainingProgressListeners(TrainingProgressEvent.event(TrainingProgressEvent.EventType.START_INSTANCE_PROCESSING));
           BiasedVector biasedInstance = new BiasedVector(instance);
@@ -205,7 +207,7 @@ public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, Trainin
 
   @Override
   public void save(OutputStream out) throws IOException {
-    DataOutputStream dataOut = new DataOutputStream(out);
+    final DataOutputStream dataOut = new DataOutputStream(out);
     VectorUtils.save(weights, dataOut);
     dataOut.writeInt(dimension);
     dataOut.writeDouble(lambda);
@@ -232,7 +234,7 @@ public class PegasosSVM implements ConfidentBinaryClassifier, Trainable, Trainin
       if (index == 0) {
         return 1.0;
       }
-      return vector.get(index);
+      return vector.get(index - 1);
     }
 
     @Override

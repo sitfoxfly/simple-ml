@@ -39,7 +39,7 @@ public class TIntDoubleTreeMapTest {
   @Test
   public void testRemove() {
     final double defaultValue = 1.0;
-    TIntDoubleTreeMap map = new TIntDoubleTreeMap();
+    final TIntDoubleTreeMap map = new TIntDoubleTreeMap();
     map.remove(1);
     map.put(1, defaultValue);
     map.remove(1);
