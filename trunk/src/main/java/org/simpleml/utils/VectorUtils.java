@@ -2,6 +2,9 @@ package org.simpleml.utils;
 
 import org.simpleml.IndexedValue;
 import org.simpleml.classify.ext.LoadException;
+import org.simpleml.struct.ArrayVector;
+import org.simpleml.struct.MutableVector;
+import org.simpleml.struct.SparseHashVector;
 import org.simpleml.struct.Vector;
 
 import java.io.DataInput;
@@ -19,6 +22,49 @@ import java.util.List;
  */
 public class VectorUtils {
 
+  private static final Class<? extends Vector> DEFAULT_SPARSE_VECTOR_CLASS = SparseHashVector.class;
+  private static final Class<? extends Vector> DEFAULT_VECTOR_CLASS = SparseHashVector.class;
+
+  public static MutableVector newDenseVector(int dimension) {
+    return new ArrayVector(dimension);
+  }
+
+  public static MutableVector newDenseVector(double[] array) {
+    return new ArrayVector(array);
+  }
+
+  public static MutableVector newMutableVector(int dimension) {
+    try {
+      return (MutableVector) DEFAULT_VECTOR_CLASS.getConstructor(int.class).newInstance(dimension);
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static MutableVector newMutableVector(double[] array) {
+    try {
+      return (MutableVector) DEFAULT_VECTOR_CLASS.getConstructor(double[].class).newInstance(array);
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static MutableVector newSparseVector(int dimension) {
+    try {
+      return (MutableVector) DEFAULT_SPARSE_VECTOR_CLASS.getConstructor(int.class).newInstance(dimension);
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static MutableVector newSparseVector(double[] array) {
+    try {
+      return (MutableVector) DEFAULT_SPARSE_VECTOR_CLASS.getConstructor(double[].class).newInstance(array);
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static void save(Vector vector, DataOutput dataOut) throws IOException {
     dataOut.writeInt(vector.getDimension());
     dataOut.writeInt(vector.sparseSize());
@@ -28,6 +74,10 @@ public class VectorUtils {
       dataOut.writeInt(entry.getIndex());
       dataOut.writeDouble(entry.getValue());
     }
+  }
+
+  public static Vector loadDefaultVector(DataInput dataIn) throws IOException, LoadException {
+    return load(DEFAULT_VECTOR_CLASS, dataIn);
   }
 
   public static Vector load(Class<? extends Vector> clazz, DataInput dataIn) throws IOException, LoadException {

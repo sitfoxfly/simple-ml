@@ -13,8 +13,8 @@ public class LinearPerceptronTest {
 
   @Test
   public void testLinearPerceptron() throws Exception {
-    LinearPerceptron perceptron = new LinearPerceptron(DataUtils.DATA_SIZE);
-    List<LabeledVector> trainingData = DataUtils.getSimpleTrainingData();
+    final LinearPerceptron perceptron = new LinearPerceptron(DataUtils.DATA_SIZE);
+    final List<LabeledVector> trainingData = DataUtils.getSimpleTrainingData();
 
     perceptron.train(trainingData);
 

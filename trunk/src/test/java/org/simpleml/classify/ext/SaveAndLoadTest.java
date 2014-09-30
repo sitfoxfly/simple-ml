@@ -21,7 +21,7 @@ public class SaveAndLoadTest {
     final Method getWeights = trainable.getClass().getMethod("getWeights");
     final List<LabeledVector> trainingData = DataUtils.getSimpleTrainingData();
     trainable.train(trainingData);
-    final ExternalizableModel loadedModel = ExtUtil.trySaveAndLoad((ExternalizableModel) trainable);
+    final ExternalizableModel loadedModel = ExtUtils.trySaveAndLoad((ExternalizableModel) trainable);
 
     final Vector v1 = (Vector) getWeights.invoke(trainable);
     final Vector v2 = (Vector) getWeights.invoke(loadedModel);

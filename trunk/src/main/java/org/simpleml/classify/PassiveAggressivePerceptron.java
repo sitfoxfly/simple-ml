@@ -6,15 +6,14 @@ import org.simpleml.classify.notify.Notifier;
 import org.simpleml.classify.notify.progress.TrainingProgressEvent;
 import org.simpleml.classify.notify.progress.TrainingProgressListener;
 import org.simpleml.classify.notify.progress.TrainingProgressNotifier;
-import org.simpleml.struct.ArrayVector;
 import org.simpleml.struct.LabeledVector;
 import org.simpleml.struct.MutableVector;
 import org.simpleml.struct.Vector;
 import org.simpleml.utils.VectorUtils;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * See the paper: Koby Crammer at al. 2006. Online Passive-Aggressive Algorithms.
@@ -25,9 +24,9 @@ import java.util.LinkedList;
 public class PassiveAggressivePerceptron implements ConfidentBinaryClassifier, Trainable, TrainingProgressNotifier, ExternalizableModel {
 
   public static PassiveAggressivePerceptron load(InputStream in) throws IOException, LoadException {
-    DataInputStream dataIn = new DataInputStream(in);
-    PassiveAggressivePerceptron instance = new PassiveAggressivePerceptron();
-    instance.w = (MutableVector) VectorUtils.load(ArrayVector.class, dataIn);
+    final DataInputStream dataIn = new DataInputStream(in);
+    final PassiveAggressivePerceptron instance = new PassiveAggressivePerceptron();
+    instance.w = (MutableVector) VectorUtils.loadDefaultVector(dataIn);
     instance.numIteration = dataIn.readInt();
     instance.aggressiveness = dataIn.readDouble();
     instance.algorithm = AlgorithmType.valueOf(dataIn.readUTF());
@@ -56,7 +55,7 @@ public class PassiveAggressivePerceptron implements ConfidentBinaryClassifier, T
   }
 
   public PassiveAggressivePerceptron(int dimension) {
-    w = new ArrayVector(dimension);
+    w = VectorUtils.newMutableVector(dimension);
   }
 
   private double calcSquaredL2(Vector vector) {
@@ -108,7 +107,7 @@ public class PassiveAggressivePerceptron implements ConfidentBinaryClassifier, T
 
   public void train(Iterable<LabeledVector> data, boolean cacheL2) {
     if (cacheL2) {
-      final LinkedList<LabeledVector> list = new LinkedList<>();
+      final ArrayList<LabeledVector> list = new ArrayList<>();
       for (LabeledVector vector : data) {
         list.add(new LabeledVector(new VectorWithCachedL2(vector.getInnerVector()), vector.getLabel()));
       }
@@ -158,7 +157,7 @@ public class PassiveAggressivePerceptron implements ConfidentBinaryClassifier, T
 
   @Override
   public void save(OutputStream out) throws IOException {
-    DataOutputStream dataOut = new DataOutputStream(out);
+    final DataOutputStream dataOut = new DataOutputStream(out);
     VectorUtils.save(w, dataOut);
     dataOut.writeInt(numIteration);
     dataOut.writeDouble(aggressiveness);

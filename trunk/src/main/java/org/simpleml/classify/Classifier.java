@@ -8,4 +8,5 @@ import org.simpleml.struct.Vector;
 public interface Classifier {
 
   public int classify(Vector vector);
+
 }
