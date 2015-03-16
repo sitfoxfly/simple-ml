@@ -64,6 +64,6 @@ If you are keen to use Simple-ML for non-commertial/research projects, please sp
 
 # Cheers #
 
-Now you know everything to be able to use Simple-ML in your data minig tasks. The library is still under our lazy development, so if you find a bug or you have a suggestion we would be glad to know. Please use the [issue tracker](https://code.google.com/p/simple-ml/issues/list) or e-mail. If you want to become a contributor, fell free to drop me an e-mail.
+Now you know everything to be able to use Simple-ML in your data minig tasks. The library is still under our lazy development, so if you find a bug or you have a suggestion we would be glad to know. Please use the [issue tracker](https://github.com/sitfoxfly/simple-ml/issues) or e-mail. If you want to become a contributor, fell free to drop me an e-mail.
 
 Since the training and classification algorithms implemented in Simple-ML are so fast, you will definitely have more time for ~~beer~~ your research!
